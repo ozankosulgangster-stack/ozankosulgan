@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ozankosulgan V3 Project Sandbox</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Workspace navigation">
+        <div class="brand">
+          <span class="brand-mark">O3</span>
+          <div>
+            <p class="eyebrow">Ozankosulgan.com</p>
+            <h1>V3 Sandbox</h1>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="dashboard">Dashboard</button>
+          <button class="nav-item" data-view="change-requests">Change Requests</button>
+          <button class="nav-item" data-view="decisions">Decision Studio</button>
+          <button class="nav-item" data-view="checklists">Checklist Builder</button>
+          <button class="nav-item" data-view="gamification">Team Missions</button>
+          <button class="nav-item" data-view="customize">Customize</button>
+        </nav>
+
+        <section class="workspace-card" aria-labelledby="workspace-title">
+          <p class="eyebrow">Active Workspace</p>
+          <h2 id="workspace-title">Sandbox Company</h2>
+          <p id="workspace-meta">Agile approach | Technology</p>
+          <button id="open-signup" class="secondary-button">Sign Up / Edit</button>
+        </section>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Reusable PM operating model</p>
+            <h2 id="view-title">Project Command Dashboard</h2>
+          </div>
+          <div class="topbar-actions">
+            <label class="select-label" for="methodology-select">Way of working</label>
+            <select id="methodology-select">
+              <option value="agile">Agile</option>
+              <option value="waterfall">Waterfall</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
+            <button id="demo-reset" class="secondary-button">Reset Demo</button>
+          </div>
+        </header>
+
+        <section id="dashboard" class="view active" aria-labelledby="dashboard-title">
+          <div class="hero-panel">
+            <div>
+              <p class="eyebrow">Sandbox product version 3</p>
+              <h3 id="dashboard-title">Gamified change control and decision tracking</h3>
+              <p>
+                Configure project workflows by industry, choose Agile or Waterfall, and turn
+                approvals into missions with clear dashboards, reusable checklists, and decision logs.
+              </p>
+            </div>
+            <form id="quick-signup" class="signup-form" aria-label="Create sandbox workspace">
+              <label>
+                Work email
+                <input id="quick-email" type="email" placeholder="name@company.com" required />
+              </label>
+              <label>
+                Company
+                <input id="quick-company" type="text" placeholder="Acme Operations" required />
+              </label>
+              <button class="primary-button" type="submit">Create Sandbox</button>
+            </form>
+          </div>
+
+          <div class="metric-grid" id="metric-grid"></div>
+
+          <div class="two-column">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Workflow</p>
+                  <h3 id="workflow-title">Agile delivery flow</h3>
+                </div>
+                <button class="secondary-button compact" data-view-target="customize">
+                  Configure
+                </button>
+              </div>
+              <div id="workflow-board" class="workflow-board"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Attention</p>
+                  <h3>Decision and request queue</h3>
+                </div>
+                <button class="secondary-button compact" data-view-target="change-requests">
+                  Open
+                </button>
+              </div>
+              <div id="queue-list" class="queue-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="change-requests" class="view" aria-labelledby="change-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Change request center</p>
+              <h3 id="change-title">Prioritize scope, budget, schedule, and risk impacts</h3>
+            </div>
+            <button id="add-request" class="primary-button">Add Request</button>
+          </div>
+          <div id="request-list" class="record-grid"></div>
+        </section>
+
+        <section id="decisions" class="view" aria-labelledby="decision-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Decision studio</p>
+              <h3 id="decision-title">Make decision paths explicit and repeatable</h3>
+            </div>
+            <button id="add-decision" class="primary-button">Add Decision</button>
+          </div>
+          <div id="decision-list" class="record-grid"></div>
+        </section>
+
+        <section id="checklists" class="view" aria-labelledby="checklist-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Checklist builder</p>
+              <h3 id="checklist-title">Reusable controls for every industry playbook</h3>
+            </div>
+            <button id="focus-checklist-step" class="primary-button">Add Step</button>
+          </div>
+          <div class="two-column">
+            <section class="panel">
+              <h3>Current Template</h3>
+              <form id="checklist-form" class="inline-form">
+                <label>
+                  New reusable step
+                  <input
+                    id="new-checklist-step"
+                    type="text"
+                    placeholder="Example: Confirm sponsor approval"
+                  />
+                </label>
+                <button class="secondary-button" type="submit">Add</button>
+              </form>
+              <div id="checklist-list" class="checklist-list"></div>
+            </section>
+            <section class="panel">
+              <h3>Template Presets</h3>
+              <div id="preset-list" class="preset-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="gamification" class="view" aria-labelledby="game-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Team missions</p>
+              <h3 id="game-title">Reward quality, velocity, and collaboration</h3>
+            </div>
+          </div>
+          <div id="mission-list" class="mission-grid"></div>
+        </section>
+
+        <section id="customize" class="view" aria-labelledby="custom-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Customization studio</p>
+              <h3 id="custom-title">Adapt the operating model to any company or industry</h3>
+            </div>
+          </div>
+
+          <form id="customize-form" class="customize-form">
+            <label>
+              Industry
+              <select id="industry-select">
+                <option value="technology">Technology</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="construction">Construction</option>
+                <option value="finance">Financial Services</option>
+                <option value="education">Education</option>
+              </select>
+            </label>
+            <label>
+              Governance strictness
+              <input id="governance-range" type="range" min="1" max="5" value="3" />
+            </label>
+            <label>
+              Points for on-time reviews
+              <input id="points-review" type="number" min="5" max="100" value="25" />
+            </label>
+            <label>
+              Points for risk reduction
+              <input id="points-risk" type="number" min="5" max="100" value="40" />
+            </label>
+            <button class="primary-button" type="submit">Apply Configuration</button>
+          </form>
+
+          <div class="panel">
+            <h3>Reusable model</h3>
+            <div id="custom-summary" class="custom-summary"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="signup-dialog">
+      <form id="signup-form" class="dialog-card">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Sandbox access</p>
+            <h3>Create or update workspace</h3>
+          </div>
+          <button id="close-signup" class="icon-button" type="button" aria-label="Close">x</button>
+        </div>
+        <label>
+          Full name
+          <input id="signup-name" type="text" placeholder="Project Manager" required />
+        </label>
+        <label>
+          Work email
+          <input id="signup-email" type="email" placeholder="name@company.com" required />
+        </label>
+        <label>
+          Company
+          <input id="signup-company" type="text" placeholder="Company name" required />
+        </label>
+        <label>
+          Primary goal
+          <select id="signup-goal">
+            <option value="change-control">Change request control</option>
+            <option value="decision-making">Decision making</option>
+            <option value="delivery-dashboard">Delivery dashboard</option>
+            <option value="industry-template">Industry reusable template</option>
+          </select>
+        </label>
+        <menu>
+          <button id="cancel-signup" class="secondary-button" type="button">Cancel</button>
+          <button class="primary-button" type="submit">Save Sandbox</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
