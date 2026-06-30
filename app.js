@@ -217,6 +217,51 @@ const reusableAssets = [
   { title: "Change-control game rules", detail: "Points, badges, and missions that reward high-quality reviews, fast decisions, and risk reduction." },
 ];
 
+const baselineChangeGates = [
+  {
+    id: "capture",
+    title: "1. Baseline capture",
+    owner: "Project manager",
+    evidence: "Scope package, assumptions, exclusions, schedule, cost, and acceptance criteria are versioned.",
+  },
+  {
+    id: "impact",
+    title: "2. Impact analysis",
+    owner: "Delivery lead + finance",
+    evidence: "Budget, timeline, resource, quality, risk, and dependency impacts are quantified.",
+  },
+  {
+    id: "review",
+    title: "3. Change board review",
+    owner: "Sponsor + PMO",
+    evidence: "Options, recommendation, decision authority, and trade-offs are documented.",
+  },
+  {
+    id: "signoff",
+    title: "4. Stakeholder sign-off",
+    owner: "Business, technical, customer, and vendor owners",
+    evidence: "Required approvers accept the changed baseline before work proceeds.",
+  },
+  {
+    id: "update",
+    title: "5. Baseline update",
+    owner: "PMO",
+    evidence: "Approved change updates the baseline, RAID log, schedule, reporting, and communications.",
+  },
+];
+
+const criticalSkills = [
+  "Architecture",
+  "AI Governance",
+  "Data Engineering",
+  "Integration",
+  "Security",
+  "Privacy",
+  "Business Translation",
+  "Change Adoption",
+  "Vendor Coordination",
+];
+
 function buildChecklistForIndustry(industryKey) {
   const preset = industryPresets[industryKey] ?? industryPresets.technology;
   const sections = [
@@ -360,6 +405,214 @@ function buildSowState(industryKey = "technology") {
   };
 }
 
+function buildScopeBaselineState(industryKey = "technology") {
+  const playbook = sowPlaybooks[industryKey] ?? sowPlaybooks.technology;
+  const preset = industryPresets[industryKey] ?? industryPresets.technology;
+
+  return {
+    industry: industryKey,
+    version: "v1.0",
+    lastUpdated: "Draft baseline generated from SOW Studio",
+    activeGateIndex: 1,
+    components: [
+      {
+        id: "SB-1",
+        title: "In-scope deliverables",
+        owner: "PM + business sponsor",
+        status: "Approved",
+        source: playbook.components[0].title,
+        control: "Any new deliverable or material acceptance change becomes a change request.",
+        evidence: "Deliverable list, acceptance criteria, and explicit exclusions.",
+      },
+      {
+        id: "SB-2",
+        title: "Schedule baseline",
+        owner: "Delivery lead",
+        status: "Under Review",
+        source: playbook.method,
+        control: "Date movement requires impact analysis across dependency, vendor, and adoption paths.",
+        evidence: "Milestone sequence, dependency assumptions, review gates, and critical path risks.",
+      },
+      {
+        id: "SB-3",
+        title: "Cost and resource baseline",
+        owner: "Finance + PMO",
+        status: "Needs Info",
+        source: preset.focus,
+        control: "Resource or cost movement requires sponsor approval and funding decision capture.",
+        evidence: "Role demand, vendor effort, budget range, and contingency assumptions.",
+      },
+      {
+        id: "SB-4",
+        title: "Acceptance and governance baseline",
+        owner: "Product + risk owner",
+        status: "Under Review",
+        source: "AI/data and delivery controls",
+        control: "Quality, security, privacy, compliance, or adoption criteria cannot be waived silently.",
+        evidence: "Definition of done, readiness checklist, governance gates, and sign-off authority.",
+      },
+    ],
+    stakeholders: [
+      {
+        id: "sponsor",
+        name: "Executive sponsor",
+        role: "Value, funding, and priority owner",
+        status: "Signed Off",
+        due: "Baseline review",
+        concern: "Business outcome and funding path confirmed.",
+      },
+      {
+        id: "product",
+        name: "Product / business owner",
+        role: "Scope and acceptance owner",
+        status: "Reviewing",
+        due: "Next checkpoint",
+        concern: "Acceptance criteria and release expectations need final review.",
+      },
+      {
+        id: "delivery",
+        name: "Delivery lead",
+        role: "Work package, schedule, and dependency owner",
+        status: "Reviewing",
+        due: "This week",
+        concern: "Schedule baseline needs dependency confirmation.",
+      },
+      {
+        id: "risk",
+        name: "Data / risk owner",
+        role: "Security, privacy, compliance, and AI/data controls",
+        status: "Approval Needed",
+        due: "Before build starts",
+        concern: "Governance evidence must be attached before approval.",
+      },
+      {
+        id: "customer",
+        name: "Customer / operations partner",
+        role: "Adoption, readiness, and support owner",
+        status: "Pending",
+        due: "Before launch plan",
+        concern: "Training and support readiness need validation.",
+      },
+    ],
+    changeGates: baselineChangeGates.map((gate, index) => ({
+      ...gate,
+      status: index === 0 ? "Complete" : index === 1 ? "Active" : "Pending",
+    })),
+  };
+}
+
+function buildResourceCapacityState(industryKey = "technology") {
+  const preset = industryPresets[industryKey] ?? industryPresets.technology;
+
+  return {
+    industry: industryKey,
+    planningWindow: "Next 4 weeks",
+    lastAction: "Initial multi-project capacity scan created",
+    projects: [
+      {
+        id: "P-1",
+        name: "AI customer portal pilot",
+        priority: "High",
+        outcome: "Customer self-service pilot with governed AI support",
+        demand: "Architecture, integration, AI governance, change adoption",
+      },
+      {
+        id: "P-2",
+        name: "Data quality remediation",
+        priority: "High",
+        outcome: "Trusted reporting baseline and source-system fixes",
+        demand: "Data engineering, analytics, privacy, business translation",
+      },
+      {
+        id: "P-3",
+        name: "Compliance automation rollout",
+        priority: "Medium",
+        outcome: "Audit-ready workflow automation with risk evidence",
+        demand: "Security, privacy, integration, vendor coordination",
+      },
+      {
+        id: "P-4",
+        name: `${preset.label} adoption enablement`,
+        priority: "Medium",
+        outcome: "Training, operating handover, and support readiness",
+        demand: "Change adoption, business translation, vendor coordination",
+      },
+    ],
+    resources: [
+      {
+        id: "R-1",
+        name: "Aylin Demir",
+        role: "Solution architect",
+        capacity: 40,
+        skills: ["Architecture", "Integration", "Security"],
+        allocations: [
+          { project: "AI customer portal pilot", skill: "Architecture", hours: 22, priority: "High" },
+          { project: "Data quality remediation", skill: "Integration", hours: 16, priority: "High" },
+          { project: "Compliance automation rollout", skill: "Security", hours: 10, priority: "Medium" },
+        ],
+      },
+      {
+        id: "R-2",
+        name: "Marco Silva",
+        role: "Data engineer",
+        capacity: 40,
+        skills: ["Data Engineering", "Integration", "Analytics"],
+        allocations: [
+          { project: "Data quality remediation", skill: "Data Engineering", hours: 18, priority: "High" },
+          { project: "AI customer portal pilot", skill: "Integration", hours: 14, priority: "High" },
+          { project: "Compliance automation rollout", skill: "Analytics", hours: 8, priority: "Medium" },
+        ],
+      },
+      {
+        id: "R-3",
+        name: "Priya Chen",
+        role: "AI and data governance lead",
+        capacity: 32,
+        skills: ["AI Governance", "Privacy", "Risk"],
+        allocations: [
+          { project: "AI customer portal pilot", skill: "AI Governance", hours: 14, priority: "High" },
+          { project: "Data quality remediation", skill: "Privacy", hours: 14, priority: "High" },
+          { project: "Compliance automation rollout", skill: "Risk", hours: 8, priority: "Medium" },
+        ],
+      },
+      {
+        id: "R-4",
+        name: "Ozan Kosulgan",
+        role: "PMO and business translation lead",
+        capacity: 36,
+        skills: ["PMO", "Business Translation", "Vendor Coordination"],
+        allocations: [
+          { project: "AI customer portal pilot", skill: "Business Translation", hours: 14, priority: "High" },
+          { project: "Data quality remediation", skill: "PMO", hours: 8, priority: "High" },
+          { project: "Compliance automation rollout", skill: "Vendor Coordination", hours: 10, priority: "Medium" },
+        ],
+      },
+      {
+        id: "R-5",
+        name: "Lena Brooks",
+        role: "Adoption and readiness lead",
+        capacity: 32,
+        skills: ["Change Adoption", "Training", "Customer Readiness"],
+        allocations: [
+          { project: `${preset.label} adoption enablement`, skill: "Change Adoption", hours: 12, priority: "Medium" },
+          { project: "AI customer portal pilot", skill: "Training", hours: 10, priority: "High" },
+        ],
+      },
+      {
+        id: "R-6",
+        name: "Samir Patel",
+        role: "Automation engineer",
+        capacity: 40,
+        skills: ["Automation", "Integration", "QA"],
+        allocations: [
+          { project: "Compliance automation rollout", skill: "Automation", hours: 20, priority: "Medium" },
+          { project: "AI customer portal pilot", skill: "QA", hours: 12, priority: "High" },
+        ],
+      },
+    ],
+  };
+}
+
 const initialState = {
   workspace: {
     name: "Project Manager",
@@ -375,6 +628,8 @@ const initialState = {
     risk: 40,
   },
   sow: buildSowState("technology"),
+  scopeBaseline: buildScopeBaselineState("technology"),
+  resourceCapacity: buildResourceCapacityState("technology"),
   requests: [
     {
       id: "CR-102",
@@ -496,6 +751,15 @@ const initialState = {
       badge: "Responsible AI Steward",
       detail: "Package intake, data readiness, pilot, and adoption artifacts for reuse.",
     },
+    {
+      id: "M-5",
+      title: "Reduce resource bottlenecks",
+      team: "Portfolio PMO",
+      progress: 34,
+      points: 180,
+      badge: "Capacity Balancer",
+      detail: "Resolve over-allocation, add backup coverage, and reduce single-person dependency risk.",
+    },
   ],
 };
 
@@ -523,6 +787,14 @@ const elements = {
   sowScheduleList: document.querySelector("#sow-schedule-list"),
   sowStatement: document.querySelector("#sow-statement"),
   sowIndustrySelect: document.querySelector("#sow-industry-select"),
+  scopeBaselineSummary: document.querySelector("#scope-baseline-summary"),
+  baselineComponentList: document.querySelector("#baseline-component-list"),
+  stakeholderSignoffList: document.querySelector("#stakeholder-signoff-list"),
+  changeControlGateList: document.querySelector("#change-control-gate-list"),
+  resourceSummaryGrid: document.querySelector("#resource-summary-grid"),
+  resourceAllocationList: document.querySelector("#resource-allocation-list"),
+  skillCoverageList: document.querySelector("#skill-coverage-list"),
+  resourceConflictList: document.querySelector("#resource-conflict-list"),
   aiGovernanceList: document.querySelector("#ai-governance-list"),
   reusableAssetList: document.querySelector("#reusable-asset-list"),
   customSummary: document.querySelector("#custom-summary"),
@@ -539,6 +811,8 @@ const elements = {
 const viewTitles = {
   dashboard: "Project Command Dashboard",
   "sow-studio": "SOW Breakdown Studio",
+  "scope-baseline": "Scope Baseline Control",
+  "resource-capacity": "Resource Capacity Control",
   "change-requests": "Change Request Center",
   decisions: "Decision Studio",
   checklists: "Checklist Builder",
@@ -570,6 +844,46 @@ function normalizeState(nextState) {
       ...normalized.sow,
     };
   }
+
+  const baselineIndustry = normalized.scopeBaseline?.industry ?? normalized.industry;
+  const baselineDefaults = buildScopeBaselineState(sowPlaybooks[baselineIndustry] ? baselineIndustry : normalized.industry);
+  normalized.scopeBaseline = {
+    ...baselineDefaults,
+    ...(normalized.scopeBaseline ?? {}),
+    components: baselineDefaults.components.map((component, index) => ({
+      ...component,
+      ...((normalized.scopeBaseline?.components ?? [])[index] ?? {}),
+    })),
+    stakeholders: baselineDefaults.stakeholders.map((stakeholder, index) => ({
+      ...stakeholder,
+      ...((normalized.scopeBaseline?.stakeholders ?? [])[index] ?? {}),
+    })),
+    changeGates: baselineDefaults.changeGates.map((gate, index) => ({
+      ...gate,
+      ...((normalized.scopeBaseline?.changeGates ?? [])[index] ?? {}),
+    })),
+  };
+
+  const resourceIndustry = normalized.resourceCapacity?.industry ?? normalized.industry;
+  const resourceDefaults = buildResourceCapacityState(sowPlaybooks[resourceIndustry] ? resourceIndustry : normalized.industry);
+  normalized.resourceCapacity = {
+    ...resourceDefaults,
+    ...(normalized.resourceCapacity ?? {}),
+    projects: resourceDefaults.projects.map((project, index) => ({
+      ...project,
+      ...((normalized.resourceCapacity?.projects ?? [])[index] ?? {}),
+    })),
+    resources: resourceDefaults.resources.map((resource, index) => {
+      const storedResource = (normalized.resourceCapacity?.resources ?? [])[index] ?? {};
+      return {
+        ...resource,
+        ...storedResource,
+        skills: storedResource.skills ?? resource.skills,
+        allocations: storedResource.allocations ?? resource.allocations,
+      };
+    }),
+  };
+
   normalized.requests = (normalized.requests ?? initialState.requests).map(enrichRequest);
   normalized.missions = initialState.missions.map((mission, index) => ({
     ...mission,
@@ -627,6 +941,97 @@ function completePercent(items) {
   return Math.round((complete / items.length) * 100);
 }
 
+function statusPercent(items, completeStatus) {
+  if (!items.length) return 0;
+  const complete = items.filter((item) => item.status === completeStatus).length;
+  return Math.round((complete / items.length) * 100);
+}
+
+function scopeBaselineReadiness() {
+  const componentApproval = statusPercent(state.scopeBaseline.components, "Approved");
+  const stakeholderApproval = statusPercent(state.scopeBaseline.stakeholders, "Signed Off");
+  const gateCompletion = statusPercent(state.scopeBaseline.changeGates, "Complete");
+  return Math.round((componentApproval + stakeholderApproval + gateCompletion) / 3);
+}
+
+function resourceHours(resource) {
+  return resource.allocations.reduce((sum, allocation) => sum + allocation.hours, 0);
+}
+
+function resourceUtilization(resource) {
+  return Math.round((resourceHours(resource) / resource.capacity) * 100);
+}
+
+function utilizationRisk(resource) {
+  const utilization = resourceUtilization(resource);
+  if (utilization > 100) return "High";
+  if (utilization >= 85) return "Medium";
+  return "Low";
+}
+
+function skillCoverage() {
+  const resources = state.resourceCapacity.resources;
+  const allocationSkills = resources.flatMap((resource) => resource.allocations.map((allocation) => allocation.skill));
+  const skills = [...new Set([...criticalSkills, ...allocationSkills])];
+
+  return skills
+    .map((skill) => {
+      const holders = resources.filter((resource) => resource.skills.includes(skill));
+      const demand = resources.flatMap((resource) => resource.allocations).reduce((sum, allocation) => {
+        return allocation.skill === skill ? sum + allocation.hours : sum;
+      }, 0);
+      const risk = holders.length <= 1 ? "Guru Risk" : holders.length === 2 ? "Thin Coverage" : "Covered";
+
+      return {
+        skill,
+        holders,
+        demand,
+        risk,
+      };
+    })
+    .sort((a, b) => {
+      const riskRank = { "Guru Risk": 0, "Thin Coverage": 1, Covered: 2 };
+      return riskRank[a.risk] - riskRank[b.risk] || b.demand - a.demand || a.skill.localeCompare(b.skill);
+    });
+}
+
+function capacityConflicts() {
+  const overloads = state.resourceCapacity.resources
+    .filter((resource) => resourceHours(resource) > resource.capacity)
+    .map((resource) => ({
+      type: "Over-allocation",
+      status: "Conflict",
+      severity: "High",
+      title: `${resource.name} is at ${resourceUtilization(resource)}% capacity`,
+      detail: `${resourceHours(resource) - resource.capacity} hours above capacity across ${resource.allocations.length} active assignments.`,
+      owner: resource.role,
+    }));
+
+  const guruRisks = skillCoverage()
+    .filter((skill) => skill.risk === "Guru Risk" && skill.demand > 0)
+    .map((skill) => ({
+      type: "Guru dependency",
+      status: "Guru Risk",
+      severity: "Medium",
+      title: `${skill.skill} depends on ${skill.holders[0]?.name ?? "one person"}`,
+      detail: `${skill.demand} hours of demand with no named backup coverage.`,
+      owner: "Portfolio PMO",
+    }));
+
+  const hotResources = state.resourceCapacity.resources
+    .filter((resource) => resource.allocations.filter((allocation) => allocation.priority === "High").length >= 2)
+    .map((resource) => ({
+      type: "Priority collision",
+      status: "Needs Review",
+      severity: utilizationRisk(resource),
+      title: `${resource.name} is split across high-priority work`,
+      detail: `${resource.allocations.filter((allocation) => allocation.priority === "High").length} high-priority assignments compete for the same skill set.`,
+      owner: resource.role,
+    }));
+
+  return [...overloads, ...guruRisks, ...hotResources].slice(0, 8);
+}
+
 function updateWorkspaceChrome() {
   const industry = industryPresets[state.industry];
   elements.workspaceTitle.textContent = state.workspace.company || "Sandbox Company";
@@ -641,6 +1046,9 @@ function updateWorkspaceChrome() {
 function renderMetrics() {
   const openRequests = state.requests.filter((request) => request.status !== "Approved").length;
   const pendingDecisions = state.decisions.filter((decision) => decision.status !== "Approved").length;
+  const baselineReadiness = scopeBaselineReadiness();
+  const conflicts = capacityConflicts();
+  const guruRiskCount = skillCoverage().filter((skill) => skill.risk === "Guru Risk" && skill.demand > 0).length;
   const checklistCompletion = completePercent(state.checklist);
   const aiControls = state.checklist.filter((item) => item.type === "AI/Data");
   const aiReadiness = completePercent(aiControls);
@@ -658,6 +1066,18 @@ function renderMetrics() {
       value: pendingDecisions,
       trend: "Decision log active",
       detail: "Options, owner, due date, and rationale remain visible.",
+    },
+    {
+      label: "Scope baseline readiness",
+      value: `${baselineReadiness}%`,
+      trend: state.scopeBaseline.version,
+      detail: "Baseline components, sign-offs, and change gates are tracked together.",
+    },
+    {
+      label: "Resource conflicts",
+      value: conflicts.length,
+      trend: `${guruRiskCount} guru risks`,
+      detail: "Over-allocation, priority collisions, and single-person skill dependencies are visible.",
     },
     {
       label: "Checklist completion",
@@ -740,6 +1160,20 @@ function renderWorkflow() {
 
 function renderQueue() {
   const queueItems = [
+    ...capacityConflicts().slice(0, 2).map((conflict) => ({
+      id: "RESOURCE",
+      title: conflict.title,
+      type: conflict.type,
+      status: conflict.status,
+    })),
+    ...state.scopeBaseline.stakeholders
+      .filter((stakeholder) => stakeholder.status !== "Signed Off")
+      .map((stakeholder) => ({
+        id: "SIGN-OFF",
+        title: stakeholder.name,
+        type: stakeholder.role,
+        status: stakeholder.status,
+      })),
     ...state.requests
       .filter((request) => request.status !== "Approved")
       .map((request) => ({
@@ -803,6 +1237,220 @@ function renderRequests() {
       `,
     )
     .join("");
+}
+
+function renderScopeBaseline() {
+  const baseline = state.scopeBaseline;
+  const componentApproval = statusPercent(baseline.components, "Approved");
+  const stakeholderApproval = statusPercent(baseline.stakeholders, "Signed Off");
+  const gateCompletion = statusPercent(baseline.changeGates, "Complete");
+  const openBaselineItems = baseline.components.filter((item) => item.status !== "Approved").length;
+
+  elements.scopeBaselineSummary.innerHTML = [
+    {
+      label: "Baseline readiness",
+      value: `${scopeBaselineReadiness()}%`,
+      detail: `${baseline.version} | ${baseline.lastUpdated}`,
+    },
+    {
+      label: "Component approval",
+      value: `${componentApproval}%`,
+      detail: `${openBaselineItems} baseline components still need human review.`,
+    },
+    {
+      label: "Stakeholder sign-off",
+      value: `${stakeholderApproval}%`,
+      detail: `${baseline.stakeholders.length} stakeholder groups tracked before commitment.`,
+    },
+    {
+      label: "Change gate completion",
+      value: `${gateCompletion}%`,
+      detail: "A deviation cannot move forward without impact, decision, and sign-off evidence.",
+    },
+  ]
+    .map(
+      (item) => `
+        <article class="baseline-summary-card">
+          <span>${item.label}</span>
+          <strong>${item.value}</strong>
+          <p>${item.detail}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.baselineComponentList.innerHTML = baseline.components
+    .map(
+      (component) => `
+        <article class="baseline-component-card">
+          <div class="record-meta">
+            <span class="score-pill">${component.id}</span>
+            <span class="status-pill ${statusClass(component.status)}">${component.status}</span>
+          </div>
+          <h4>${component.title}</h4>
+          <span>Owner: ${component.owner}</span>
+          <span>Source: ${component.source}</span>
+          <div class="challenge-box">
+            <strong>Control rule</strong>
+            <span>${component.control}</span>
+          </div>
+          <span>Evidence: ${component.evidence}</span>
+          <button class="secondary-button compact" data-approve-baseline="${component.id}">Approve Component</button>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.stakeholderSignoffList.innerHTML = baseline.stakeholders
+    .map(
+      (stakeholder) => `
+        <article class="stakeholder-card">
+          <div class="record-meta">
+            <span class="status-pill ${statusClass(stakeholder.status)}">${stakeholder.status}</span>
+            <span class="check-type">Due: ${stakeholder.due}</span>
+          </div>
+          <h4>${stakeholder.name}</h4>
+          <span>${stakeholder.role}</span>
+          <p>${stakeholder.concern}</p>
+          <button class="secondary-button compact" data-signoff-stakeholder="${stakeholder.id}">Capture Sign-off</button>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.changeControlGateList.innerHTML = baseline.changeGates
+    .map(
+      (gate) => `
+        <article class="change-gate-card ${gate.status === "Active" ? "active" : ""}">
+          <div class="record-meta">
+            <span class="status-pill ${statusClass(gate.status)}">${gate.status}</span>
+            <span class="check-type">${gate.owner}</span>
+          </div>
+          <h4>${gate.title}</h4>
+          <p>${gate.evidence}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderResourceCapacity() {
+  const resources = state.resourceCapacity.resources;
+  const conflicts = capacityConflicts();
+  const coverage = skillCoverage();
+  const overallocated = resources.filter((resource) => resourceHours(resource) > resource.capacity).length;
+  const averageUtilization = Math.round(
+    resources.reduce((sum, resource) => sum + resourceUtilization(resource), 0) / resources.length,
+  );
+  const guruRisks = coverage.filter((skill) => skill.risk === "Guru Risk" && skill.demand > 0).length;
+  const backupCandidates = resources.filter((resource) => resourceUtilization(resource) < 85).length;
+
+  elements.resourceSummaryGrid.innerHTML = [
+    {
+      label: "Average utilization",
+      value: `${averageUtilization}%`,
+      detail: `${state.resourceCapacity.planningWindow} portfolio view across ${state.resourceCapacity.projects.length} projects.`,
+    },
+    {
+      label: "Over-allocated people",
+      value: overallocated,
+      detail: "People above capacity need level loading, scope trade-offs, or a sequencing decision.",
+    },
+    {
+      label: "Guru-risk skills",
+      value: guruRisks,
+      detail: "Critical skills with demand and only one named holder create single points of failure.",
+    },
+    {
+      label: "Backup candidates",
+      value: backupCandidates,
+      detail: state.resourceCapacity.lastAction,
+    },
+  ]
+    .map(
+      (item) => `
+        <article class="resource-summary-card">
+          <span>${item.label}</span>
+          <strong>${item.value}</strong>
+          <p>${item.detail}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.resourceAllocationList.innerHTML = resources
+    .map((resource) => {
+      const utilization = resourceUtilization(resource);
+      const hours = resourceHours(resource);
+      const risk = utilizationRisk(resource);
+      return `
+        <article class="resource-card">
+          <div class="record-meta">
+            <span class="risk-pill ${riskClass(risk)}">${risk} load</span>
+            <span class="score-pill">${hours}/${resource.capacity} hrs</span>
+          </div>
+          <h4>${resource.name}</h4>
+          <span>${resource.role}</span>
+          <div class="skill-chip-list">
+            ${resource.skills.map((skill) => `<span class="check-type">${skill}</span>`).join("")}
+          </div>
+          <div class="progress-bar resource-load ${risk.toLowerCase()}" aria-hidden="true"><span style="width: ${Math.min(utilization, 100)}%"></span></div>
+          <span>${utilization}% allocated across ${resource.allocations.length} assignments</span>
+          <div class="allocation-list">
+            ${resource.allocations
+              .map(
+                (allocation) => `
+                  <div class="allocation-item">
+                    <strong>${allocation.project}</strong>
+                    <span>${allocation.skill} | ${allocation.hours} hrs | ${allocation.priority}</span>
+                  </div>
+                `,
+              )
+              .join("")}
+          </div>
+          <button class="secondary-button compact" data-level-resource="${resource.id}">Level Load</button>
+        </article>
+      `;
+    })
+    .join("");
+
+  elements.skillCoverageList.innerHTML = coverage
+    .filter((skill) => skill.demand > 0 || criticalSkills.includes(skill.skill))
+    .slice(0, 9)
+    .map(
+      (skill) => `
+        <article class="skill-card ${statusClass(skill.risk)}">
+          <div class="record-meta">
+            <span class="status-pill ${statusClass(skill.risk)}">${skill.risk}</span>
+            <span class="check-type">${skill.holders.length} holder${skill.holders.length === 1 ? "" : "s"}</span>
+          </div>
+          <h4>${skill.skill}</h4>
+          <span>Demand: ${skill.demand} hrs in ${state.resourceCapacity.planningWindow}</span>
+          <span>Coverage: ${skill.holders.map((holder) => holder.name).join(" / ") || "No named owner"}</span>
+          <button class="secondary-button compact" data-add-skill-backup="${skill.skill}">Add Backup</button>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.resourceConflictList.innerHTML = conflicts.length
+    ? conflicts
+        .map(
+          (conflict) => `
+            <article class="resource-conflict-card">
+              <div class="record-meta">
+                <span class="status-pill ${statusClass(conflict.status)}">${conflict.status}</span>
+                <span class="risk-pill ${riskClass(conflict.severity)}">${conflict.severity}</span>
+                <span class="check-type">${conflict.type}</span>
+              </div>
+              <h4>${conflict.title}</h4>
+              <span>Owner: ${conflict.owner}</span>
+              <p>${conflict.detail}</p>
+            </article>
+          `,
+        )
+        .join("")
+    : `<article class="resource-conflict-card"><h4>No active conflicts</h4><p>Capacity and backup coverage are inside the current tolerance.</p></article>`;
 }
 
 
@@ -1011,6 +1659,8 @@ function rebuildSowFromInputs() {
   state.sow = buildSowState(industryKey);
   state.sow.statement = elements.sowStatement.value.trim() || sowPlaybooks[industryKey].sowPrompt;
   state.industry = industryKey;
+  state.scopeBaseline = buildScopeBaselineState(industryKey);
+  state.resourceCapacity = buildResourceCapacityState(industryKey);
   saveState();
   renderAll();
 }
@@ -1042,6 +1692,8 @@ function renderAll() {
   renderWorkflow();
   renderQueue();
   renderSowStudio();
+  renderScopeBaseline();
+  renderResourceCapacity();
   renderRequests();
   renderDecisions();
   renderChecklist();
@@ -1054,8 +1706,184 @@ function applyIndustryPreset(industryKey) {
   const preset = industryPresets[industryKey];
   state.industry = industryKey;
   state.checklist = buildChecklistForIndustry(industryKey);
+  state.scopeBaseline = buildScopeBaselineState(industryKey);
+  state.resourceCapacity = buildResourceCapacityState(industryKey);
   state.missions[2].progress = Math.max(state.missions[2].progress, 35);
   state.missions[3].progress = Math.max(state.missions[3].progress, 35);
+  saveState();
+  renderAll();
+}
+
+function approveBaselineComponent(id) {
+  const component = state.scopeBaseline.components.find((item) => item.id === id);
+  if (!component) return;
+
+  component.status = "Approved";
+  state.scopeBaseline.lastUpdated = `${component.id} approved by human review`;
+  state.missions[2].progress = Math.min(100, state.missions[2].progress + 4);
+  state.missions[2].points += state.points.review;
+  saveState();
+  renderAll();
+}
+
+function signOffStakeholder(id) {
+  const stakeholder = state.scopeBaseline.stakeholders.find((item) => item.id === id);
+  if (!stakeholder) return;
+
+  stakeholder.status = "Signed Off";
+  stakeholder.concern = "Baseline accepted. Any deviation now routes through change control.";
+  state.scopeBaseline.lastUpdated = `${stakeholder.name} signed off baseline`;
+  state.missions[1].progress = Math.min(100, state.missions[1].progress + 5);
+  state.missions[1].points += state.points.review;
+  saveState();
+  renderAll();
+}
+
+function advanceChangeGate() {
+  const baseline = state.scopeBaseline;
+  const currentGate = baseline.changeGates[baseline.activeGateIndex];
+  if (!currentGate) return;
+
+  currentGate.status = "Complete";
+  baseline.activeGateIndex = Math.min(baseline.changeGates.length - 1, baseline.activeGateIndex + 1);
+  baseline.changeGates.forEach((gate, index) => {
+    if (index < baseline.activeGateIndex) gate.status = "Complete";
+    if (index === baseline.activeGateIndex && gate.status !== "Complete") gate.status = "Active";
+  });
+  baseline.lastUpdated = `${currentGate.title} completed`;
+  state.missions[0].progress = Math.min(100, state.missions[0].progress + 5);
+  state.missions[0].points += state.points.review;
+  saveState();
+  renderAll();
+}
+
+function resetBaselineSignoffs() {
+  state.scopeBaseline.stakeholders = buildScopeBaselineState(state.industry).stakeholders;
+  state.scopeBaseline.lastUpdated = "Stakeholder sign-offs reset for baseline review";
+  saveState();
+  renderAll();
+}
+
+function routeBaselineChange() {
+  const nextNumber = 112 + state.requests.length;
+  state.requests.unshift(enrichRequest({
+    id: `CR-${nextNumber}`,
+    title: "Baseline scope change assessment",
+    owner: "PMO",
+    status: "Needs Info",
+    risk: state.governance >= 4 ? "High" : "Medium",
+    stageIndex: 0,
+    checklistComplete: 30,
+    qualityScore: 35,
+    points: state.governance >= 4 ? 140 : 100,
+    challenge: "Attach baseline delta, stakeholder impact, and approval evidence before work moves.",
+    badge: "Baseline Guardian",
+    impact: {
+      budget: "TBD",
+      timeline: "TBD",
+      scope: "Baseline",
+      risk: state.governance >= 4 ? "High" : "Moderate",
+    },
+  }, 0));
+  state.scopeBaseline.activeGateIndex = 1;
+  state.scopeBaseline.changeGates = buildScopeBaselineState(state.scopeBaseline.industry).changeGates;
+  state.scopeBaseline.lastUpdated = "Baseline deviation routed to change control";
+  saveState();
+  renderAll();
+  setView("change-requests");
+}
+
+function rewardCapacityWork(points = 20, progress = 6) {
+  const mission = state.missions.find((item) => item.id === "M-5");
+  if (!mission) return;
+
+  mission.progress = Math.min(100, mission.progress + progress);
+  mission.points += points;
+}
+
+function levelLoadResource(resourceId) {
+  const resource = state.resourceCapacity.resources.find((item) => item.id === resourceId);
+  if (!resource) return;
+
+  const overage = resourceHours(resource) - resource.capacity;
+  if (overage <= 0) {
+    state.resourceCapacity.lastAction = `${resource.name} is within capacity; no load shift needed.`;
+    saveState();
+    renderAll();
+    return;
+  }
+
+  const movableAllocation = [...resource.allocations]
+    .filter((allocation) => allocation.hours > 4)
+    .sort((a, b) => (a.priority === "High") - (b.priority === "High") || b.hours - a.hours)[0];
+
+  if (!movableAllocation) return;
+
+  const target = state.resourceCapacity.resources
+    .filter((candidate) => candidate.id !== resource.id && resourceUtilization(candidate) < 90)
+    .sort((a, b) => resourceUtilization(a) - resourceUtilization(b))[0];
+
+  const movedHours = Math.min(6, overage, movableAllocation.hours - 2);
+  movableAllocation.hours -= movedHours;
+  resource.allocations = resource.allocations.map((allocation) =>
+    allocation.project === movableAllocation.project && allocation.skill === movableAllocation.skill
+      ? movableAllocation
+      : allocation,
+  );
+
+  if (target) {
+    if (!target.skills.includes(movableAllocation.skill)) {
+      target.skills.push(movableAllocation.skill);
+    }
+    target.allocations.push({
+      project: movableAllocation.project,
+      skill: movableAllocation.skill,
+      hours: movedHours,
+      priority: "Shared support",
+    });
+    state.resourceCapacity.lastAction = `${movedHours} hours moved from ${resource.name} to ${target.name} for ${movableAllocation.skill}.`;
+  } else {
+    state.resourceCapacity.lastAction = `${movedHours} hours removed from ${resource.name}; PM review should resequence the work.`;
+  }
+
+  rewardCapacityWork(state.points.risk, 8);
+  saveState();
+  renderAll();
+}
+
+function levelLoadConflicts() {
+  const overloaded = state.resourceCapacity.resources
+    .filter((resource) => resourceHours(resource) > resource.capacity)
+    .sort((a, b) => resourceUtilization(b) - resourceUtilization(a))[0];
+
+  if (!overloaded) {
+    state.resourceCapacity.lastAction = "No over-allocation remains in the current planning window.";
+    saveState();
+    renderAll();
+    return;
+  }
+
+  levelLoadResource(overloaded.id);
+}
+
+function addBackupCoverage(skillName) {
+  const targetSkill = skillName || skillCoverage().find((skill) => skill.risk !== "Covered" && skill.demand > 0)?.skill;
+  if (!targetSkill) return;
+
+  const candidate = state.resourceCapacity.resources
+    .filter((resource) => !resource.skills.includes(targetSkill))
+    .sort((a, b) => resourceUtilization(a) - resourceUtilization(b))[0];
+
+  if (!candidate) {
+    state.resourceCapacity.lastAction = `${targetSkill} already has named coverage across the current resource pool.`;
+    saveState();
+    renderAll();
+    return;
+  }
+
+  candidate.skills.push(targetSkill);
+  state.resourceCapacity.lastAction = `${candidate.name} added as backup coverage for ${targetSkill}.`;
+  rewardCapacityWork(state.points.review, 6);
   saveState();
   renderAll();
 }
@@ -1219,6 +2047,11 @@ function bindEvents() {
   document.querySelector("#sow-generate").addEventListener("click", rebuildSowFromInputs);
   document.querySelector("#sow-approve-layer").addEventListener("click", approveSowLayer);
   document.querySelector("#sow-reset-layers").addEventListener("click", resetSowLayers);
+  document.querySelector("#route-baseline-change").addEventListener("click", routeBaselineChange);
+  document.querySelector("#reset-baseline-signoffs").addEventListener("click", resetBaselineSignoffs);
+  document.querySelector("#advance-change-gate").addEventListener("click", advanceChangeGate);
+  document.querySelector("#level-load-conflicts").addEventListener("click", levelLoadConflicts);
+  document.querySelector("#add-backup-coverage").addEventListener("click", () => addBackupCoverage());
   document.querySelector("#focus-checklist-step").addEventListener("click", () => {
     setView("checklists");
     elements.newChecklistStep.focus();
@@ -1237,10 +2070,18 @@ function bindEvents() {
     const decisionId = event.target.dataset.progressDecision;
     const preset = event.target.dataset.preset;
     const missionId = event.target.dataset.completeMission;
+    const baselineComponentId = event.target.dataset.approveBaseline;
+    const stakeholderId = event.target.dataset.signoffStakeholder;
+    const levelResourceId = event.target.dataset.levelResource;
+    const backupSkill = event.target.dataset.addSkillBackup;
 
     if (requestId) progressRequest(requestId);
     if (decisionId) progressDecision(decisionId);
     if (preset) applyIndustryPreset(preset);
+    if (baselineComponentId) approveBaselineComponent(baselineComponentId);
+    if (stakeholderId) signOffStakeholder(stakeholderId);
+    if (levelResourceId) levelLoadResource(levelResourceId);
+    if (backupSkill) addBackupCoverage(backupSkill);
 
     if (missionId) {
       const mission = state.missions.find((item) => item.id === missionId);

@@ -44,6 +44,8 @@
           <h2>What the sandbox demonstrates</h2>
           <ul>
             <li>SOW breakdown into manageable work packages, schedules, and risks</li>
+            <li>Scope baseline tracking with stakeholder sign-off before commitments move</li>
+            <li>Multi-project resource capacity with skill conflicts and guru-risk visibility</li>
             <li>Governed change requests with visible business impact</li>
             <li>Decision logs that clarify owners, options, and timing</li>
             <li>Reusable industry checklists for repeatable delivery</li>
@@ -145,24 +147,27 @@
       <h2>Explore a reusable project operating model.</h2>
       <p>
         The sandbox below turns the consulting offer into something tangible: break down a statement of work, configure
-        the industry, switch delivery methods, move change requests forward, track decisions, reuse checklists, and show
-        teams how good governance can feel lighter and more actionable.
+        the industry, establish a scope baseline, balance scarce resource capacity, switch delivery methods, move
+        change requests forward, track decisions, reuse checklists, and show teams how good governance can feel lighter
+        and more actionable.
       </p>
     </section>
 
     <div class="app-shell">
       <aside class="sidebar" aria-label="Workspace navigation">
         <div class="brand">
-          <span class="brand-mark">O3</span>
+          <span class="brand-mark">OP</span>
           <div>
             <p class="eyebrow">Ozankosulgan.com</p>
-            <h1>V3 Sandbox</h1>
+            <h1>OzzyPM</h1>
           </div>
         </div>
 
         <nav class="nav-list">
           <button class="nav-item active" data-view="dashboard">Dashboard</button>
           <button class="nav-item" data-view="sow-studio">SOW Studio</button>
+          <button class="nav-item" data-view="scope-baseline">Scope Baseline</button>
+          <button class="nav-item" data-view="resource-capacity">Resource Capacity</button>
           <button class="nav-item" data-view="change-requests">Change Requests</button>
           <button class="nav-item" data-view="decisions">Decision Studio</button>
           <button class="nav-item" data-view="checklists">Checklist Builder</button>
@@ -203,8 +208,8 @@
               <h3 id="dashboard-title">Gamified change control and decision tracking</h3>
               <p>
                 Configure project workflows by industry, choose Agile or Waterfall, break a statement of work into
-                manageable work packages, and turn approvals into missions with clear dashboards, reusable checklists,
-                AI governance gates, and decision logs.
+                manageable work packages, lock the scope baseline, detect skill-based resource conflicts, and turn
+                approvals into missions with clear dashboards, reusable checklists, AI governance gates, and decision logs.
               </p>
             </div>
             <form id="quick-signup" class="signup-form" aria-label="Create sandbox workspace">
@@ -249,6 +254,86 @@
               <div id="queue-list" class="queue-list"></div>
             </section>
           </div>
+        </section>
+
+        <section id="scope-baseline" class="view" aria-labelledby="scope-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Scope baseline control</p>
+              <h3 id="scope-title">Build the approved baseline before changes enter delivery</h3>
+            </div>
+            <div class="button-row">
+              <button id="route-baseline-change" class="primary-button">Route Baseline Change</button>
+              <button id="reset-baseline-signoffs" class="secondary-button">Reset Sign-offs</button>
+            </div>
+          </div>
+
+          <div id="scope-baseline-summary" class="baseline-summary-grid"></div>
+
+          <div class="two-column baseline-layout">
+            <section class="panel">
+              <h3>Baseline Components</h3>
+              <p class="panel-copy">Translate the SOW into controlled scope artifacts that require human review before scope, schedule, cost, or acceptance criteria are treated as committed.</p>
+              <div id="baseline-component-list" class="baseline-component-list"></div>
+            </section>
+
+            <section class="panel">
+              <h3>Stakeholder Sign-off</h3>
+              <p class="panel-copy">Track who has accepted the baseline, who still has questions, and where approval risk may block downstream delivery.</p>
+              <div id="stakeholder-signoff-list" class="stakeholder-signoff-list"></div>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Change control workflow</p>
+                <h3>Baseline deviation path</h3>
+              </div>
+              <button id="advance-change-gate" class="secondary-button compact">Advance Gate</button>
+            </div>
+            <div id="change-control-gate-list" class="change-control-gate-list"></div>
+          </section>
+        </section>
+
+        <section id="resource-capacity" class="view" aria-labelledby="resource-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Resource capacity control</p>
+              <h3 id="resource-title">Spot over-allocation and guru dependency before delivery blocks</h3>
+            </div>
+            <div class="button-row">
+              <button id="level-load-conflicts" class="primary-button">Level Load Conflicts</button>
+              <button id="add-backup-coverage" class="secondary-button">Add Backup Coverage</button>
+            </div>
+          </div>
+
+          <div id="resource-summary-grid" class="resource-summary-grid"></div>
+
+          <div class="two-column resource-layout">
+            <section class="panel">
+              <h3>Multi-project Allocation</h3>
+              <p class="panel-copy">See who is assigned across projects, which skill each project is consuming, and where the same person is carrying too much critical work.</p>
+              <div id="resource-allocation-list" class="resource-allocation-list"></div>
+            </section>
+
+            <section class="panel">
+              <h3>Skill Coverage</h3>
+              <p class="panel-copy">Identify single points of failure, thin backup coverage, and practical cross-training moves before a specialist becomes the blocker.</p>
+              <div id="skill-coverage-list" class="skill-coverage-list"></div>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Conflict detection</p>
+                <h3>Capacity and knowledge-risk alerts</h3>
+              </div>
+              <button class="secondary-button compact" data-view-target="change-requests">Route Escalation</button>
+            </div>
+            <div id="resource-conflict-list" class="resource-conflict-list"></div>
+          </section>
         </section>
 
 

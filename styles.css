@@ -659,7 +659,7 @@ label {
 
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 14px;
 }
 
@@ -668,7 +668,15 @@ label {
 .record-card,
 .mission-card,
 .governance-card,
-.asset-card {
+.asset-card,
+.baseline-summary-card,
+.baseline-component-card,
+.stakeholder-card,
+.change-gate-card,
+.resource-summary-card,
+.resource-card,
+.skill-card,
+.resource-conflict-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -815,18 +823,26 @@ label {
 }
 
 .status-pill.approved,
+.status-pill.complete,
+.status-pill.signed-off,
 .badge.success {
   background: #ecfdf5;
   color: var(--success);
 }
 
 .status-pill.needs-info,
+.status-pill.approval-needed,
+.status-pill.pending,
+.status-pill.needs-review,
+.status-pill.thin-coverage,
 .risk-pill.medium {
   background: #fff7ed;
   color: var(--warning);
 }
 
 .status-pill.rejected,
+.status-pill.conflict,
+.status-pill.guru-risk,
 .risk-pill.high {
   background: #fff1f2;
   color: var(--danger);
@@ -951,6 +967,215 @@ label {
 .status-pill.under-review {
   background: #eef4ff;
   color: var(--primary);
+}
+
+.status-pill.active,
+.status-pill.reviewing {
+  background: #eef4ff;
+  color: var(--primary);
+}
+
+.baseline-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.baseline-summary-card {
+  display: grid;
+  gap: 8px;
+  min-height: 126px;
+  padding: 16px;
+}
+
+.baseline-summary-card span,
+.baseline-summary-card p,
+.baseline-component-card span,
+.baseline-component-card p,
+.stakeholder-card span,
+.stakeholder-card p,
+.change-gate-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.baseline-summary-card strong {
+  color: var(--ink);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.baseline-layout {
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+}
+
+.baseline-component-list,
+.stakeholder-signoff-list,
+.change-control-gate-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.baseline-component-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.baseline-component-card,
+.stakeholder-card,
+.change-gate-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px;
+}
+
+.baseline-component-card h4,
+.stakeholder-card h4,
+.change-gate-card h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.baseline-component-card button,
+.stakeholder-card button {
+  justify-self: start;
+}
+
+.change-control-gate-list {
+  grid-template-columns: repeat(5, minmax(160px, 1fr));
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.change-gate-card {
+  min-width: 160px;
+  background: #f8fafc;
+}
+
+.change-gate-card.active {
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.resource-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.resource-summary-card {
+  display: grid;
+  gap: 8px;
+  min-height: 126px;
+  padding: 16px;
+}
+
+.resource-summary-card span,
+.resource-summary-card p,
+.resource-card span,
+.resource-card p,
+.skill-card span,
+.skill-card p,
+.resource-conflict-card span,
+.resource-conflict-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.resource-summary-card strong {
+  color: var(--ink);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.resource-layout {
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+}
+
+.resource-allocation-list,
+.skill-coverage-list,
+.resource-conflict-list,
+.allocation-list,
+.skill-chip-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.resource-allocation-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.resource-card,
+.skill-card,
+.resource-conflict-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px;
+}
+
+.resource-card h4,
+.skill-card h4,
+.resource-conflict-card h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.skill-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 0;
+}
+
+.allocation-list {
+  margin-top: 0;
+}
+
+.allocation-item {
+  display: grid;
+  gap: 4px;
+  padding: 9px;
+  border-radius: var(--radius);
+  background: #f8fafc;
+}
+
+.allocation-item strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.resource-load.medium span {
+  background: var(--warning);
+}
+
+.resource-load.high span {
+  background: var(--danger);
+}
+
+.skill-card.guru-risk {
+  border-left: 4px solid var(--danger);
+}
+
+.skill-card.thin-coverage {
+  border-left: 4px solid var(--warning);
+}
+
+.resource-conflict-card {
+  grid-template-columns: minmax(0, 1fr);
+  background: #ffffff;
+}
+
+.resource-card button,
+.skill-card button {
+  justify-self: start;
 }
 
 .record-grid,
@@ -1174,7 +1399,8 @@ menu {
 }
 
 @media (max-width: 1120px) {
-  .metric-grid,
+  .baseline-summary-grid,
+  .resource-summary-grid,
   .record-grid,
   .mission-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1227,7 +1453,9 @@ menu {
   .hero-panel,
   .two-column,
   .sow-grid,
-  .sow-output-grid {
+  .sow-output-grid,
+  .baseline-layout,
+  .resource-layout {
     grid-template-columns: 1fr;
   }
 
@@ -1238,7 +1466,8 @@ menu {
 
 @media (max-width: 620px) {
   .nav-list,
-  .metric-grid,
+  .baseline-summary-grid,
+  .resource-summary-grid,
   .record-grid,
   .mission-grid,
   .customize-form {
@@ -1255,6 +1484,8 @@ menu {
   .score-grid,
   .asset-grid,
   .work-package-grid,
+  .baseline-component-list,
+  .resource-allocation-list,
   .sow-layer,
   .schedule-item {
     grid-template-columns: 1fr;
