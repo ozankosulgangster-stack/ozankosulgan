@@ -1,4 +1,4 @@
-# Ozankosulgan.com V3 Project Sandbox
+# OzzyPM Project Sandbox
 
 This static sandbox prototypes a configurable project management platform for:
 
@@ -19,10 +19,10 @@ Then open `http://localhost:8000`.
 
 ## Website Integration
 
-To add it as version 3 on Ozankosulgan.com, place these files under a route such as:
+To add it on Ozankosulgan.com, place these files under a route such as:
 
 ```text
-/v3/
+/ozzypm/
   index.html
   styles.css
   app.js
@@ -49,6 +49,34 @@ The sandbox now includes stronger reusable delivery assets:
 - Industry playbooks that combine Agile delivery controls with AI/data governance controls.
 - A dedicated AI Governance tab with reusable gates from opportunity intake through launch and adoption.
 - A reusable asset library for AI use-case intake, data readiness, responsible AI RAID, pilot decisions, adoption scoreboards, and change-control game rules.
+- Scope baseline control with stakeholder sign-off and change-control gates.
+- Resource capacity control with skill-based allocation, over-allocation detection, and guru-risk visibility.
+- Notion Sync demo layer plus a server-side API scaffold for secure Notion data import and PM brief write-back.
+
+## Notion Integration
+
+The frontend includes a `Notion Sync` demo tab. Live Notion data should be connected through the server-side endpoint in `api/notion.js`; do not place Notion API keys in `index.html` or `app.js`.
+
+Required server environment variables:
+
+```text
+NOTION_API_KEY
+NOTION_PROJECTS_DATABASE_ID
+NOTION_RESOURCES_DATABASE_ID
+NOTION_ALLOCATIONS_DATABASE_ID
+NOTION_CHANGES_DATABASE_ID
+NOTION_SIGNOFFS_DATABASE_ID
+NOTION_REPORTS_DATABASE_ID
+```
+
+Recommended Notion databases:
+
+- Projects: name, priority, status, sponsor, start date, end date.
+- Resources: name, role, weekly capacity, skills, backup skills.
+- Allocations: project, resource, skill, weekly hours, week, priority.
+- Change Requests: title, project, owner, status, scope impact, risk.
+- Sign-offs / Decisions: stakeholder, project, approval status, due date, decision notes.
+- PM Briefs: name, summary, generated date, risk level.
 
 ## About Section
 

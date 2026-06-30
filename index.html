@@ -168,6 +168,7 @@
           <button class="nav-item" data-view="sow-studio">SOW Studio</button>
           <button class="nav-item" data-view="scope-baseline">Scope Baseline</button>
           <button class="nav-item" data-view="resource-capacity">Resource Capacity</button>
+          <button class="nav-item" data-view="notion-sync">Notion Sync</button>
           <button class="nav-item" data-view="change-requests">Change Requests</button>
           <button class="nav-item" data-view="decisions">Decision Studio</button>
           <button class="nav-item" data-view="checklists">Checklist Builder</button>
@@ -204,7 +205,7 @@
         <section id="dashboard" class="view active" aria-labelledby="dashboard-title">
           <div class="hero-panel">
             <div>
-              <p class="eyebrow">Sandbox product version 3</p>
+              <p class="eyebrow">OzzyPM operating model</p>
               <h3 id="dashboard-title">Gamified change control and decision tracking</h3>
               <p>
                 Configure project workflows by industry, choose Agile or Waterfall, break a statement of work into
@@ -333,6 +334,47 @@
               <button class="secondary-button compact" data-view-target="change-requests">Route Escalation</button>
             </div>
             <div id="resource-conflict-list" class="resource-conflict-list"></div>
+          </section>
+        </section>
+
+        <section id="notion-sync" class="view" aria-labelledby="notion-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Notion integration layer</p>
+              <h3 id="notion-title">Turn Notion workspaces into PM intelligence</h3>
+            </div>
+            <div class="button-row">
+              <button id="preview-notion-sync" class="primary-button">Preview Notion Sync</button>
+              <button id="generate-notion-brief" class="secondary-button">Generate PM Brief</button>
+              <button id="write-notion-report" class="secondary-button">Write Demo Report</button>
+            </div>
+          </div>
+
+          <div id="notion-summary-grid" class="notion-summary-grid"></div>
+
+          <div class="two-column notion-layout">
+            <section class="panel">
+              <h3>Database Mapping</h3>
+              <p class="panel-copy">Map Notion databases into the OzzyPM operating model without exposing API tokens in the browser.</p>
+              <div id="notion-mapping-list" class="notion-mapping-list"></div>
+            </section>
+
+            <section class="panel">
+              <h3>PM Insight Feed</h3>
+              <p class="panel-copy">Convert Notion rows into practical signals: capacity conflicts, sign-off gaps, change risks, and decisions that need a human owner.</p>
+              <div id="notion-insight-list" class="notion-insight-list"></div>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Secure API scaffold</p>
+                <h3>Server-side connection requirements</h3>
+              </div>
+              <span id="notion-last-sync" class="check-type">Demo mode</span>
+            </div>
+            <div id="notion-setup-list" class="notion-setup-list"></div>
           </section>
         </section>
 

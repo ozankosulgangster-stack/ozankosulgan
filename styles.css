@@ -676,7 +676,11 @@ label {
 .resource-summary-card,
 .resource-card,
 .skill-card,
-.resource-conflict-card {
+.resource-conflict-card,
+.notion-summary-card,
+.notion-mapping-card,
+.notion-insight-card,
+.notion-setup-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -825,6 +829,9 @@ label {
 .status-pill.approved,
 .status-pill.complete,
 .status-pill.signed-off,
+.status-pill.synced,
+.status-pill.mapped,
+.status-pill.ready,
 .badge.success {
   background: #ecfdf5;
   color: var(--success);
@@ -1178,6 +1185,73 @@ label {
   justify-self: start;
 }
 
+.notion-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.notion-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
+}
+
+.notion-summary-card,
+.notion-mapping-card,
+.notion-insight-card,
+.notion-setup-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px;
+}
+
+.notion-summary-card {
+  min-height: 126px;
+}
+
+.notion-summary-card span,
+.notion-summary-card p,
+.notion-mapping-card span,
+.notion-mapping-card p,
+.notion-insight-card span,
+.notion-insight-card p,
+.notion-setup-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.notion-summary-card strong {
+  color: var(--ink);
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
+.notion-mapping-list,
+.notion-insight-list,
+.notion-setup-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.notion-mapping-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.notion-mapping-card h4,
+.notion-insight-card h4,
+.notion-setup-card h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.notion-insight-card {
+  border-left: 4px solid var(--primary);
+}
+
 .record-grid,
 .mission-grid {
   display: grid;
@@ -1401,6 +1475,7 @@ menu {
 @media (max-width: 1120px) {
   .baseline-summary-grid,
   .resource-summary-grid,
+  .notion-summary-grid,
   .record-grid,
   .mission-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1455,7 +1530,8 @@ menu {
   .sow-grid,
   .sow-output-grid,
   .baseline-layout,
-  .resource-layout {
+  .resource-layout,
+  .notion-layout {
     grid-template-columns: 1fr;
   }
 
@@ -1468,6 +1544,7 @@ menu {
   .nav-list,
   .baseline-summary-grid,
   .resource-summary-grid,
+  .notion-summary-grid,
   .record-grid,
   .mission-grid,
   .customize-form {
@@ -1486,6 +1563,7 @@ menu {
   .work-package-grid,
   .baseline-component-list,
   .resource-allocation-list,
+  .notion-mapping-list,
   .sow-layer,
   .schedule-item {
     grid-template-columns: 1fr;

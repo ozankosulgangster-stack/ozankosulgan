@@ -217,6 +217,76 @@ const reusableAssets = [
   { title: "Change-control game rules", detail: "Points, badges, and missions that reward high-quality reviews, fast decisions, and risk reduction." },
 ];
 
+const notionDatabaseTemplates = [
+  {
+    key: "projects",
+    label: "Projects",
+    envKey: "NOTION_PROJECTS_DATABASE_ID",
+    target: "Portfolio projects",
+    required: ["Name", "Priority", "Status", "Sponsor", "Start", "End"],
+    demoRecords: 4,
+  },
+  {
+    key: "resources",
+    label: "Resources",
+    envKey: "NOTION_RESOURCES_DATABASE_ID",
+    target: "People, capacity, roles, and skill profiles",
+    required: ["Name", "Role", "Weekly Capacity", "Skills", "Backup Skills"],
+    demoRecords: 6,
+  },
+  {
+    key: "allocations",
+    label: "Allocations",
+    envKey: "NOTION_ALLOCATIONS_DATABASE_ID",
+    target: "Multi-project demand and skill consumption",
+    required: ["Project", "Resource", "Skill", "Hours", "Week", "Priority"],
+    demoRecords: 15,
+  },
+  {
+    key: "changes",
+    label: "Change Requests",
+    envKey: "NOTION_CHANGES_DATABASE_ID",
+    target: "Scope, risk, decision, and approval workflow",
+    required: ["Title", "Project", "Owner", "Status", "Scope Impact", "Risk"],
+    demoRecords: 3,
+  },
+  {
+    key: "signoffs",
+    label: "Sign-offs / Decisions",
+    envKey: "NOTION_SIGNOFFS_DATABASE_ID",
+    target: "Stakeholder acceptance and decision traceability",
+    required: ["Stakeholder", "Project", "Approval Status", "Due", "Decision Notes"],
+    demoRecords: 5,
+  },
+  {
+    key: "reports",
+    label: "PM Briefs",
+    envKey: "NOTION_REPORTS_DATABASE_ID",
+    target: "Write-back reports and executive summaries",
+    required: ["Name", "Summary", "Generated At", "Risk Level"],
+    demoRecords: 0,
+  },
+];
+
+const notionSetupSteps = [
+  {
+    title: "Create a Notion internal connection",
+    detail: "Use a workspace-owned connection for your first OzzyPM integration. Customer-facing installs can move to OAuth later.",
+  },
+  {
+    title: "Share databases with the connection",
+    detail: "Each Notion database must be explicitly shared with the integration before the API can query it.",
+  },
+  {
+    title: "Store secrets on the server",
+    detail: "Use NOTION_API_KEY and database ID environment variables. Never place the token in index.html or app.js.",
+  },
+  {
+    title: "Deploy the /api/notion endpoint",
+    detail: "The serverless endpoint queries Notion, normalizes rows, and returns only safe project data to the frontend.",
+  },
+];
+
 const baselineChangeGates = [
   {
     id: "capture",
@@ -613,6 +683,47 @@ function buildResourceCapacityState(industryKey = "technology") {
   };
 }
 
+function buildNotionSyncState() {
+  return {
+    connectionStatus: "Demo mode",
+    lastSync: "Not connected yet",
+    reportStatus: "No report written yet",
+    mode: "Server-side API required for live Notion data",
+    mappings: notionDatabaseTemplates.map((template, index) => ({
+      ...template,
+      status: index < 3 ? "Mapped" : "Ready",
+      records: index < 3 ? template.demoRecords : 0,
+    })),
+    setup: notionSetupSteps.map((step, index) => ({
+      ...step,
+      status: index < 2 ? "Ready" : "Pending",
+    })),
+    insights: [
+      {
+        type: "Capacity",
+        status: "Conflict",
+        title: "Resource allocations can feed the Capacity view",
+        detail: "OzzyPM can convert Notion allocation rows into over-capacity and priority-collision alerts.",
+        source: "Allocations database",
+      },
+      {
+        type: "Governance",
+        status: "Needs Review",
+        title: "Sign-offs can feed baseline readiness",
+        detail: "Stakeholder approval rows can update scope baseline readiness and decision queues.",
+        source: "Sign-offs / Decisions database",
+      },
+      {
+        type: "Change Control",
+        status: "Ready",
+        title: "Change requests can become managed workflow cards",
+        detail: "Notion change rows can become OzzyPM change cards with scope, risk, owner, and approval status.",
+        source: "Change Requests database",
+      },
+    ],
+  };
+}
+
 const initialState = {
   workspace: {
     name: "Project Manager",
@@ -630,6 +741,7 @@ const initialState = {
   sow: buildSowState("technology"),
   scopeBaseline: buildScopeBaselineState("technology"),
   resourceCapacity: buildResourceCapacityState("technology"),
+  notionSync: buildNotionSyncState(),
   requests: [
     {
       id: "CR-102",
@@ -795,6 +907,11 @@ const elements = {
   resourceAllocationList: document.querySelector("#resource-allocation-list"),
   skillCoverageList: document.querySelector("#skill-coverage-list"),
   resourceConflictList: document.querySelector("#resource-conflict-list"),
+  notionSummaryGrid: document.querySelector("#notion-summary-grid"),
+  notionMappingList: document.querySelector("#notion-mapping-list"),
+  notionInsightList: document.querySelector("#notion-insight-list"),
+  notionSetupList: document.querySelector("#notion-setup-list"),
+  notionLastSync: document.querySelector("#notion-last-sync"),
   aiGovernanceList: document.querySelector("#ai-governance-list"),
   reusableAssetList: document.querySelector("#reusable-asset-list"),
   customSummary: document.querySelector("#custom-summary"),
@@ -813,6 +930,7 @@ const viewTitles = {
   "sow-studio": "SOW Breakdown Studio",
   "scope-baseline": "Scope Baseline Control",
   "resource-capacity": "Resource Capacity Control",
+  "notion-sync": "Notion Sync",
   "change-requests": "Change Request Center",
   decisions: "Decision Studio",
   checklists: "Checklist Builder",
@@ -882,6 +1000,21 @@ function normalizeState(nextState) {
         allocations: storedResource.allocations ?? resource.allocations,
       };
     }),
+  };
+
+  const notionDefaults = buildNotionSyncState();
+  normalized.notionSync = {
+    ...notionDefaults,
+    ...(normalized.notionSync ?? {}),
+    mappings: notionDefaults.mappings.map((mapping, index) => ({
+      ...mapping,
+      ...((normalized.notionSync?.mappings ?? [])[index] ?? {}),
+    })),
+    setup: notionDefaults.setup.map((step, index) => ({
+      ...step,
+      ...((normalized.notionSync?.setup ?? [])[index] ?? {}),
+    })),
+    insights: Array.isArray(normalized.notionSync?.insights) ? normalized.notionSync.insights : notionDefaults.insights,
   };
 
   normalized.requests = (normalized.requests ?? initialState.requests).map(enrichRequest);
@@ -1030,6 +1163,50 @@ function capacityConflicts() {
     }));
 
   return [...overloads, ...guruRisks, ...hotResources].slice(0, 8);
+}
+
+function buildCurrentNotionInsights() {
+  const resourceSignals = capacityConflicts().slice(0, 3).map((conflict) => ({
+    type: conflict.type,
+    status: conflict.status,
+    title: conflict.title,
+    detail: conflict.detail,
+    source: "Allocations database",
+  }));
+  const signoffSignals = state.scopeBaseline.stakeholders
+    .filter((stakeholder) => stakeholder.status !== "Signed Off")
+    .slice(0, 2)
+    .map((stakeholder) => ({
+      type: "Sign-off",
+      status: stakeholder.status,
+      title: `${stakeholder.name} has not accepted the baseline`,
+      detail: `${stakeholder.role}. Due: ${stakeholder.due}. ${stakeholder.concern}`,
+      source: "Sign-offs / Decisions database",
+    }));
+  const changeSignals = state.requests
+    .filter((request) => request.status !== "Approved")
+    .slice(0, 2)
+    .map((request) => ({
+      type: "Change Control",
+      status: request.status,
+      title: `${request.id}: ${request.title}`,
+      detail: `${request.challenge} Scope impact: ${request.impact.scope}; risk: ${request.impact.risk}.`,
+      source: "Change Requests database",
+    }));
+
+  return [...resourceSignals, ...signoffSignals, ...changeSignals].slice(0, 7);
+}
+
+async function fetchLiveNotionSync() {
+  try {
+    const response = await fetch("/api/notion", { cache: "no-store" });
+    if (!response.ok) return null;
+
+    const payload = await response.json();
+    return payload.mode === "notion-live-sync" ? payload : null;
+  } catch {
+    return null;
+  }
 }
 
 function updateWorkspaceChrome() {
@@ -1453,6 +1630,97 @@ function renderResourceCapacity() {
     : `<article class="resource-conflict-card"><h4>No active conflicts</h4><p>Capacity and backup coverage are inside the current tolerance.</p></article>`;
 }
 
+function renderNotionSync() {
+  const notion = state.notionSync;
+  const mappedCount = notion.mappings.filter((mapping) => ["Mapped", "Synced"].includes(mapping.status)).length;
+  const recordCount = notion.mappings.reduce((sum, mapping) => sum + (mapping.records ?? 0), 0);
+  const liveReady = notion.setup.filter((step) => step.status === "Ready").length;
+
+  elements.notionLastSync.textContent = notion.lastSync;
+  elements.notionSummaryGrid.innerHTML = [
+    {
+      label: "Connection mode",
+      value: notion.connectionStatus,
+      detail: notion.mode,
+    },
+    {
+      label: "Mapped databases",
+      value: `${mappedCount}/${notion.mappings.length}`,
+      detail: "Projects, resources, allocations, changes, sign-offs, and PM briefs are supported.",
+    },
+    {
+      label: "Records previewed",
+      value: recordCount,
+      detail: "Demo rows are shaped like the data OzzyPM expects from Notion.",
+    },
+    {
+      label: "Generated insights",
+      value: notion.insights.length,
+      detail: notion.reportStatus,
+    },
+  ]
+    .map(
+      (item) => `
+        <article class="notion-summary-card">
+          <span>${item.label}</span>
+          <strong>${item.value}</strong>
+          <p>${item.detail}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.notionMappingList.innerHTML = notion.mappings
+    .map(
+      (mapping) => `
+        <article class="notion-mapping-card">
+          <div class="record-meta">
+            <span class="status-pill ${statusClass(mapping.status)}">${mapping.status}</span>
+            <span class="score-pill">${mapping.records ?? 0} rows</span>
+          </div>
+          <h4>${mapping.label}</h4>
+          <span>Target: ${mapping.target}</span>
+          <span>Env: ${mapping.envKey}</span>
+          <div class="skill-chip-list">
+            ${mapping.required.map((property) => `<span class="check-type">${property}</span>`).join("")}
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.notionInsightList.innerHTML = notion.insights
+    .map(
+      (insight) => `
+        <article class="notion-insight-card">
+          <div class="record-meta">
+            <span class="status-pill ${statusClass(insight.status)}">${insight.status}</span>
+            <span class="check-type">${insight.type}</span>
+          </div>
+          <h4>${insight.title}</h4>
+          <span>Source: ${insight.source}</span>
+          <p>${insight.detail}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.notionSetupList.innerHTML = notion.setup
+    .map(
+      (step, index) => `
+        <article class="notion-setup-card">
+          <div class="record-meta">
+            <span class="score-pill">${index + 1}</span>
+            <span class="status-pill ${statusClass(step.status)}">${step.status}</span>
+          </div>
+          <h4>${step.title}</h4>
+          <p>${step.detail}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 
 function renderDecisions() {
   elements.decisionList.innerHTML = state.decisions
@@ -1661,6 +1929,7 @@ function rebuildSowFromInputs() {
   state.industry = industryKey;
   state.scopeBaseline = buildScopeBaselineState(industryKey);
   state.resourceCapacity = buildResourceCapacityState(industryKey);
+  state.notionSync = buildNotionSyncState();
   saveState();
   renderAll();
 }
@@ -1694,6 +1963,7 @@ function renderAll() {
   renderSowStudio();
   renderScopeBaseline();
   renderResourceCapacity();
+  renderNotionSync();
   renderRequests();
   renderDecisions();
   renderChecklist();
@@ -1708,6 +1978,7 @@ function applyIndustryPreset(industryKey) {
   state.checklist = buildChecklistForIndustry(industryKey);
   state.scopeBaseline = buildScopeBaselineState(industryKey);
   state.resourceCapacity = buildResourceCapacityState(industryKey);
+  state.notionSync = buildNotionSyncState();
   state.missions[2].progress = Math.max(state.missions[2].progress, 35);
   state.missions[3].progress = Math.max(state.missions[3].progress, 35);
   saveState();
@@ -1888,6 +2159,81 @@ function addBackupCoverage(skillName) {
   renderAll();
 }
 
+async function previewNotionSync() {
+  const now = new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+  const livePayload = await fetchLiveNotionSync();
+
+  state.notionSync.connectionStatus = livePayload ? "Live sync complete" : "Demo sync complete";
+  state.notionSync.lastSync = livePayload ? `Live sync ${now}` : `Preview synced ${now}`;
+  state.notionSync.reportStatus = "PM brief is ready to review before write-back.";
+  state.notionSync.mappings = state.notionSync.mappings.map((mapping) => ({
+    ...mapping,
+    status: "Synced",
+    records: livePayload?.databases?.[mapping.key]?.length ?? mapping.demoRecords,
+  }));
+  state.notionSync.setup = state.notionSync.setup.map((step) => ({
+    ...step,
+    status: "Ready",
+  }));
+  state.notionSync.insights = buildCurrentNotionInsights();
+  saveState();
+  renderAll();
+}
+
+function generateNotionBrief() {
+  const conflicts = capacityConflicts();
+  const pendingSignoffs = state.scopeBaseline.stakeholders.filter((stakeholder) => stakeholder.status !== "Signed Off").length;
+  const openRequests = state.requests.filter((request) => request.status !== "Approved").length;
+  state.notionSync.insights = [
+    {
+      type: "Executive Brief",
+      status: conflicts.length ? "Needs Review" : "Ready",
+      title: "Portfolio delivery risk summary",
+      detail: `${conflicts.length} resource or knowledge risks, ${pendingSignoffs} pending baseline sign-offs, and ${openRequests} open change requests need PM attention.`,
+      source: "OzzyPM generated brief",
+    },
+    ...buildCurrentNotionInsights(),
+  ].slice(0, 8);
+  state.notionSync.reportStatus = "Brief generated from current OzzyPM signals.";
+  saveState();
+  renderAll();
+}
+
+async function writeNotionReport() {
+  const now = new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+  let liveReportWritten = false;
+
+  try {
+    const response = await fetch("/api/notion", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "create-report",
+        title: "OzzyPM portfolio brief",
+        summary: state.notionSync.insights.map((insight) => insight.title).join(" | "),
+        riskLevel: capacityConflicts().length ? "High" : "Medium",
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    liveReportWritten = response.ok && Boolean(payload.id);
+  } catch {
+    liveReportWritten = false;
+  }
+
+  state.notionSync.connectionStatus = liveReportWritten ? "Live report written" : "Demo write-back queued";
+  state.notionSync.lastSync = `Report prepared ${now}`;
+  state.notionSync.reportStatus = liveReportWritten
+    ? "Report created in NOTION_REPORTS_DATABASE_ID."
+    : "Demo report would be created in NOTION_REPORTS_DATABASE_ID by /api/notion.";
+  state.notionSync.mappings = state.notionSync.mappings.map((mapping) =>
+    mapping.key === "reports"
+      ? { ...mapping, status: liveReportWritten ? "Synced" : "Ready", records: (mapping.records ?? 0) + 1 }
+      : mapping,
+  );
+  saveState();
+  renderAll();
+}
+
 
 function progressRequest(id) {
   const request = state.requests.find((item) => item.id === id);
@@ -2052,6 +2398,9 @@ function bindEvents() {
   document.querySelector("#advance-change-gate").addEventListener("click", advanceChangeGate);
   document.querySelector("#level-load-conflicts").addEventListener("click", levelLoadConflicts);
   document.querySelector("#add-backup-coverage").addEventListener("click", () => addBackupCoverage());
+  document.querySelector("#preview-notion-sync").addEventListener("click", previewNotionSync);
+  document.querySelector("#generate-notion-brief").addEventListener("click", generateNotionBrief);
+  document.querySelector("#write-notion-report").addEventListener("click", writeNotionReport);
   document.querySelector("#focus-checklist-step").addEventListener("click", () => {
     setView("checklists");
     elements.newChecklistStep.focus();
