@@ -881,6 +881,7 @@ const elements = {
   navItems: document.querySelectorAll(".nav-item"),
   views: document.querySelectorAll(".view"),
   viewTitle: document.querySelector("#view-title"),
+  viewContext: document.querySelector("#view-context"),
   workspaceTitle: document.querySelector("#workspace-title"),
   workspaceMeta: document.querySelector("#workspace-meta"),
   methodologySelect: document.querySelector("#methodology-select"),
@@ -937,6 +938,20 @@ const viewTitles = {
   "ai-governance": "AI Governance Assets",
   gamification: "Team Missions",
   customize: "Customization Studio",
+};
+
+const viewDescriptions = {
+  dashboard: "Start with portfolio health, then open the workstream that needs attention.",
+  "sow-studio": "Break down the SOW into work packages, checkpoints, schedule logic, and delivery risks.",
+  "scope-baseline": "Confirm what is committed, who signed off, and which changes need formal control.",
+  "resource-capacity": "Inspect overloaded people, scarce skills, priority collisions, and backup coverage gaps.",
+  "notion-sync": "Map Notion workspaces into OzzyPM so PM signals can become briefs and reusable records.",
+  "change-requests": "Review scope, budget, schedule, risk, and approval readiness before changes move.",
+  decisions: "Capture options, owners, timing, and decision readiness so teams stop circling.",
+  checklists: "Use repeatable delivery, agile, and AI/data controls across industries.",
+  "ai-governance": "Review AI/data gates from opportunity intake through launch, monitoring, and adoption.",
+  gamification: "Turn good delivery behavior into team missions that reinforce adoption and accountability.",
+  customize: "Tune the operating model by industry, governance strictness, and reward behavior.",
 };
 
 function normalizeState(nextState) {
@@ -1058,6 +1073,7 @@ function setView(viewName) {
   });
 
   elements.viewTitle.textContent = viewTitles[viewName] ?? viewTitles.dashboard;
+  elements.viewContext.textContent = viewDescriptions[viewName] ?? viewDescriptions.dashboard;
 }
 
 function statusClass(status) {
