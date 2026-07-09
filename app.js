@@ -1,4 +1,6 @@
 const STORAGE_KEY = "ozankosulgan-v3-sandbox";
+const SIGNUP_CONVERSION_SEND_TO = "AW-18216813923/uQSjCNja58wcEOOKuu5D";
+const SIGNUP_CONVERSION_TIMEOUT_MS = 1000;
 
 const methodologyLabels = {
   agile: "Agile",
@@ -923,6 +925,7 @@ const elements = {
   signupDialog: document.querySelector("#signup-dialog"),
   signupForm: document.querySelector("#signup-form"),
   quickSignup: document.querySelector("#quick-signup"),
+  communitySignup: document.querySelector('form[name="ozzypm-community"]'),
   newChecklistStep: document.querySelector("#new-checklist-step"),
 };
 
@@ -2348,6 +2351,28 @@ function updateSignupFields() {
   document.querySelector("#signup-goal").value = state.workspace.goal;
 }
 
+function trackSignupConversion(callback) {
+  let callbackCompleted = false;
+  const complete = () => {
+    if (callbackCompleted) return;
+    callbackCompleted = true;
+    if (callback) callback();
+  };
+
+  if (typeof window.gtag !== "function") {
+    complete();
+    return;
+  }
+
+  window.gtag("event", "conversion", {
+    send_to: SIGNUP_CONVERSION_SEND_TO,
+    event_callback: complete,
+    event_timeout: SIGNUP_CONVERSION_TIMEOUT_MS,
+  });
+
+  window.setTimeout(complete, SIGNUP_CONVERSION_TIMEOUT_MS + 250);
+}
+
 function bindEvents() {
   elements.navItems.forEach((item) => {
     item.addEventListener("click", () => setView(item.dataset.view));
@@ -2386,6 +2411,7 @@ function bindEvents() {
     saveState();
     renderAll();
     elements.signupDialog.close();
+    trackSignupConversion();
   });
 
   document.querySelector("#close-signup").addEventListener("click", () => {
@@ -2402,7 +2428,20 @@ function bindEvents() {
     state.workspace.company = document.querySelector("#quick-company").value.trim();
     saveState();
     renderAll();
+    trackSignupConversion();
   });
+
+  if (elements.communitySignup) {
+    elements.communitySignup.addEventListener("submit", (event) => {
+      if (elements.communitySignup.dataset.conversionSubmitting === "true") return;
+
+      event.preventDefault();
+      trackSignupConversion(() => {
+        elements.communitySignup.dataset.conversionSubmitting = "true";
+        elements.communitySignup.submit();
+      });
+    });
+  }
 
   document.querySelector("#add-request").addEventListener("click", addRequest);
   document.querySelector("#add-decision").addEventListener("click", addDecision);
