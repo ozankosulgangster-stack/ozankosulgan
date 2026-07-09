@@ -1,6 +1,7 @@
 const STORAGE_KEY = "ozankosulgan-v3-sandbox";
 const SIGNUP_CONVERSION_SEND_TO = "AW-18216813923/uQSjCNja58wcEOOKuu5D";
 const SIGNUP_CONVERSION_TIMEOUT_MS = 1000;
+const COMMUNITY_API_ENDPOINT = "/api/community";
 
 const methodologyLabels = {
   agile: "Agile",
@@ -926,6 +927,7 @@ const elements = {
   signupForm: document.querySelector("#signup-form"),
   quickSignup: document.querySelector("#quick-signup"),
   communitySignup: document.querySelector('form[name="ozzypm-community"]'),
+  communityFormStatus: document.querySelector("#community-form-status"),
   newChecklistStep: document.querySelector("#new-checklist-step"),
 };
 
@@ -2373,6 +2375,54 @@ function trackSignupConversion(callback) {
   window.setTimeout(complete, SIGNUP_CONVERSION_TIMEOUT_MS + 250);
 }
 
+function setCommunityFormStatus(message, isError = false) {
+  if (!elements.communityFormStatus) return;
+
+  elements.communityFormStatus.textContent = message;
+  elements.communityFormStatus.classList.toggle("error", isError);
+}
+
+function communitySignupPayload() {
+  const formData = new FormData(elements.communitySignup);
+
+  return {
+    name: String(formData.get("name") || "").trim(),
+    email: String(formData.get("email") || "").trim(),
+    focus: String(formData.get("focus") || "").trim(),
+    newsletterConsent: formData.get("newsletter-consent") === "on",
+    source: "ozzypm.com community form",
+  };
+}
+
+async function saveCommunitySignup() {
+  const response = await fetch(COMMUNITY_API_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(communitySignupPayload()),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload.message || payload.error || "Community database is not available yet.");
+  }
+
+  return payload;
+}
+
+async function handleCommunitySignupSubmit() {
+  setCommunityFormStatus("Saving your community signup...");
+
+  try {
+    await saveCommunitySignup();
+    elements.communitySignup.reset();
+    delete elements.communitySignup.dataset.conversionSubmitting;
+    setCommunityFormStatus("You are in. We will send practical PM notes and community updates.");
+  } catch (error) {
+    setCommunityFormStatus("Saving through the backup form capture.", true);
+    elements.communitySignup.submit();
+  }
+}
+
 function bindEvents() {
   elements.navItems.forEach((item) => {
     item.addEventListener("click", () => setView(item.dataset.view));
@@ -2438,7 +2488,7 @@ function bindEvents() {
       event.preventDefault();
       trackSignupConversion(() => {
         elements.communitySignup.dataset.conversionSubmitting = "true";
-        elements.communitySignup.submit();
+        handleCommunitySignupSubmit();
       });
     });
   }

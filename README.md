@@ -67,6 +67,7 @@ NOTION_ALLOCATIONS_DATABASE_ID
 NOTION_CHANGES_DATABASE_ID
 NOTION_SIGNOFFS_DATABASE_ID
 NOTION_REPORTS_DATABASE_ID
+NOTION_COMMUNITY_DATABASE_ID
 ```
 
 Recommended Notion databases:
@@ -77,6 +78,26 @@ Recommended Notion databases:
 - Change Requests: title, project, owner, status, scope impact, risk.
 - Sign-offs / Decisions: stakeholder, project, approval status, due date, decision notes.
 - PM Briefs: name, summary, generated date, risk level.
+
+## Community Database
+
+The `Join the OzzyPM community` form posts to `/api/community` and writes new members to Notion when these server environment variables are configured:
+
+```text
+NOTION_API_KEY
+NOTION_COMMUNITY_DATABASE_ID
+```
+
+Create a Notion database for community members with these properties:
+
+- Name: title
+- Email: email
+- PM Focus: rich text
+- Newsletter Consent: checkbox
+- Source: rich text
+- Submitted At: date
+
+If the Notion database is not configured yet, the form falls back to Netlify Forms so signups are still captured.
 
 ## About Section
 

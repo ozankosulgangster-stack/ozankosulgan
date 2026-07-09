@@ -509,6 +509,19 @@ a {
   font-size: 0.84rem;
 }
 
+.community-form-status {
+  min-height: 20px;
+  margin: 0;
+  color: var(--success);
+  font-size: 0.86rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.community-form-status.error {
+  color: var(--warning);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

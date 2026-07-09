@@ -1,0 +1,7 @@
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/api/community"
+  to = "/.netlify/functions/community"
+  status = 200
