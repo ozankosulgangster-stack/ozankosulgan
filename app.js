@@ -2418,8 +2418,8 @@ async function handleCommunitySignupSubmit() {
     delete elements.communitySignup.dataset.conversionSubmitting;
     setCommunityFormStatus("You are in. We will send practical PM notes and community updates.");
   } catch (error) {
-    setCommunityFormStatus("Saving through the backup form capture.", true);
-    elements.communitySignup.submit();
+    delete elements.communitySignup.dataset.conversionSubmitting;
+    setCommunityFormStatus("We could not save your signup yet. Please try again or email ozzy@ozzypm.com.", true);
   }
 }
 

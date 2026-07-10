@@ -1,0 +1,11 @@
+{
+  "name": "ozzypm-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "check": "node --check app.js && node --check netlify/functions/community.js && node --check api/notion.js"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^10.7.4"
+  }
+}

@@ -1,3 +1,6 @@
+const crypto = require("node:crypto");
+const { getStore } = require("@netlify/blobs");
+
 const NOTION_VERSION = "2022-06-28";
 
 const jsonHeaders = {
@@ -57,6 +60,15 @@ function cleanText(value, fallback = "") {
   return String(value || fallback).trim();
 }
 
+function cleanEmail(value) {
+  return cleanText(value).toLowerCase();
+}
+
+function signupKey(email) {
+  const digest = crypto.createHash("sha256").update(email).digest("hex").slice(0, 32);
+  return `member-${digest}`;
+}
+
 function richText(content) {
   return {
     rich_text: [{ text: { content: cleanText(content, "Not provided") } }],
@@ -64,7 +76,7 @@ function richText(content) {
 }
 
 function normalizeSignup(body) {
-  const email = cleanText(body.email);
+  const email = cleanEmail(body.email);
   const name = cleanText(body.name, email || "Community member");
   const focus = cleanText(body.focus, "Not specified");
   const consentValue = body.newsletterConsent ?? body["newsletter-consent"];
@@ -75,7 +87,32 @@ function normalizeSignup(body) {
     focus,
     newsletterConsent: consentValue === true || consentValue === "true" || consentValue === "on",
     source: cleanText(body.source, "ozzypm.com community form"),
+    submittedAt: new Date().toISOString(),
   };
+}
+
+async function saveCommunitySignup(signup) {
+  const store = getStore("ozzypm-community-members");
+  const key = signupKey(signup.email);
+  const existing = await store.get(key, { type: "json" }).catch(() => null);
+  const record = {
+    ...(existing || {}),
+    ...signup,
+    id: key,
+    createdAt: existing?.createdAt || signup.submittedAt,
+    updatedAt: signup.submittedAt,
+  };
+
+  await store.setJSON(key, record, {
+    metadata: {
+      email: signup.email,
+      focus: signup.focus,
+      newsletterConsent: signup.newsletterConsent,
+      updatedAt: signup.submittedAt,
+    },
+  });
+
+  return { id: key, createdAt: record.createdAt, updatedAt: record.updatedAt };
 }
 
 async function createCommunityMember(signup) {
@@ -101,7 +138,7 @@ async function createCommunityMember(signup) {
         },
         Source: richText(signup.source),
         "Submitted At": {
-          date: { start: new Date().toISOString() },
+          date: { start: signup.submittedAt },
         },
       },
     }),
@@ -115,8 +152,10 @@ exports.handler = async (event) => {
 
   if (event.httpMethod === "GET") {
     return json(200, {
-      mode: "community-database-endpoint",
-      requiredEnv: ["NOTION_API_KEY", "NOTION_COMMUNITY_DATABASE_ID"],
+      mode: "community-signup-endpoint",
+      primaryStore: "netlify-blobs",
+      optionalSync: "notion",
+      optionalEnv: ["NOTION_API_KEY", "NOTION_COMMUNITY_DATABASE_ID"],
       requiredProperties: ["Name", "Email", "PM Focus", "Newsletter Consent", "Source", "Submitted At"],
     });
   }
@@ -126,24 +165,42 @@ exports.handler = async (event) => {
   }
 
   try {
-    if (!process.env.NOTION_API_KEY || !process.env.NOTION_COMMUNITY_DATABASE_ID) {
-      return json(503, {
-        mode: "community-database-not-configured",
-        message: "Set NOTION_API_KEY and NOTION_COMMUNITY_DATABASE_ID on the server.",
-      });
-    }
-
     const signup = normalizeSignup(readBody(event));
     if (!signup.email) {
       return json(400, { error: "Email is required" });
     }
 
-    const page = await createCommunityMember(signup);
-    return json(200, {
-      mode: "community-member-created",
-      id: page.id,
-      url: page.url,
-    });
+    const stored = await saveCommunitySignup(signup);
+    const notionConfigured = Boolean(process.env.NOTION_API_KEY && process.env.NOTION_COMMUNITY_DATABASE_ID);
+
+    if (!notionConfigured) {
+      return json(200, {
+        mode: "community-member-captured",
+        storage: "netlify-blobs",
+        id: stored.id,
+        notionSync: "not-configured",
+      });
+    }
+
+    try {
+      const page = await createCommunityMember(signup);
+      return json(200, {
+        mode: "community-member-captured",
+        storage: "netlify-blobs",
+        id: stored.id,
+        notionSync: "created",
+        notionPageId: page.id,
+        notionUrl: page.url,
+      });
+    } catch (notionError) {
+      return json(200, {
+        mode: "community-member-captured",
+        storage: "netlify-blobs",
+        id: stored.id,
+        notionSync: "failed",
+        warning: notionError.message,
+      });
+    }
   } catch (error) {
     return json(500, { error: error.message });
   }
