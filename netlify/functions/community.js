@@ -18,6 +18,23 @@ function json(statusCode, body) {
   };
 }
 
+function redirect(location) {
+  return {
+    statusCode: 303,
+    headers: {
+      location,
+      "cache-control": "no-store",
+    },
+    body: "",
+  };
+}
+
+function wantsHtmlResponse(event) {
+  const accept = event.headers?.accept || event.headers?.Accept || "";
+  const contentType = event.headers?.["content-type"] || event.headers?.["Content-Type"] || "";
+  return contentType.includes("application/x-www-form-urlencoded") && accept.includes("text/html");
+}
+
 function readBody(event) {
   if (!event.body) return {};
 
@@ -171,13 +188,17 @@ exports.handler = async (event) => {
   try {
     const signup = normalizeSignup(readBody(event));
     if (!signup.email) {
+      if (wantsHtmlResponse(event)) return redirect("/#community");
       return json(400, { error: "Email is required" });
     }
 
     const stored = await saveCommunitySignup(signup);
     const notionConfigured = Boolean(process.env.NOTION_API_KEY && process.env.NOTION_COMMUNITY_DATABASE_ID);
+    const htmlResponse = wantsHtmlResponse(event);
 
     if (!notionConfigured) {
+      if (htmlResponse) return redirect("/community-thanks.html");
+
       return json(200, {
         mode: "community-member-captured",
         storage: "netlify-blobs",
@@ -188,6 +209,8 @@ exports.handler = async (event) => {
 
     try {
       const page = await createCommunityMember(signup);
+      if (htmlResponse) return redirect("/community-thanks.html");
+
       return json(200, {
         mode: "community-member-captured",
         storage: "netlify-blobs",
@@ -197,6 +220,8 @@ exports.handler = async (event) => {
         notionUrl: page.url,
       });
     } catch (notionError) {
+      if (htmlResponse) return redirect("/community-thanks.html");
+
       return json(200, {
         mode: "community-member-captured",
         storage: "netlify-blobs",

@@ -5,3 +5,28 @@
   from = "/api/community"
   to = "/.netlify/functions/community"
   status = 200
+
+[[redirects]]
+  from = "/community"
+  to = "/#community"
+  status = 301
+
+[[redirects]]
+  from = "/community/"
+  to = "/#community"
+  status = 301
+
+[[redirects]]
+  from = "/join-community"
+  to = "/#community"
+  status = 301
+
+[[redirects]]
+  from = "/join-community/"
+  to = "/#community"
+  status = 301
+
+[[redirects]]
+  from = "/community-thanks"
+  to = "/community-thanks.html"
+  status = 200
