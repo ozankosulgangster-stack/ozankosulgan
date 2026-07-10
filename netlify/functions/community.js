@@ -1,5 +1,5 @@
 const crypto = require("node:crypto");
-const { getStore } = require("@netlify/blobs");
+const { connectLambda, getStore } = require("@netlify/blobs");
 
 const NOTION_VERSION = "2022-06-28";
 
@@ -146,6 +146,10 @@ async function createCommunityMember(signup) {
 }
 
 exports.handler = async (event) => {
+  if (event.blobs) {
+    connectLambda(event);
+  }
+
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: jsonHeaders, body: "" };
   }
