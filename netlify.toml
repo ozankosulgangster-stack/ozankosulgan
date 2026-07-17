@@ -2,6 +2,16 @@
   directory = "netlify/functions"
 
 [[redirects]]
+  from = "/blog/project-is-more-than-a-plan/"
+  to = "/blog/project-is-more-than-a-plan/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/blog/project-is-more-than-a-plan"
+  to = "/blog/project-is-more-than-a-plan/index.html"
+  status = 200
+
+[[redirects]]
   from = "/api/community"
   to = "/.netlify/functions/community"
   status = 200
