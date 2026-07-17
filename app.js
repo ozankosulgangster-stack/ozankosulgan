@@ -727,6 +727,16 @@ function buildNotionSyncState() {
   };
 }
 
+function buildHealthScorecardState() {
+  return {
+    lastAggregated: "Demo aggregation from OzzyPM sandbox signals",
+    staleHours: 6,
+    briefStatus: "Executive brief not prepared yet",
+    reportingCycle: "Weekly steering committee",
+    sourceCount: 6,
+  };
+}
+
 const initialState = {
   workspace: {
     name: "Project Manager",
@@ -745,6 +755,7 @@ const initialState = {
   scopeBaseline: buildScopeBaselineState("technology"),
   resourceCapacity: buildResourceCapacityState("technology"),
   notionSync: buildNotionSyncState(),
+  healthScorecard: buildHealthScorecardState(),
   requests: [
     {
       id: "CR-102",
@@ -916,6 +927,13 @@ const elements = {
   notionInsightList: document.querySelector("#notion-insight-list"),
   notionSetupList: document.querySelector("#notion-setup-list"),
   notionLastSync: document.querySelector("#notion-last-sync"),
+  healthSummaryGrid: document.querySelector("#health-summary-grid"),
+  overallHealthPanel: document.querySelector("#overall-health-panel"),
+  executiveBriefPanel: document.querySelector("#executive-brief-panel"),
+  healthDimensionGrid: document.querySelector("#health-dimension-grid"),
+  healthDriverList: document.querySelector("#health-driver-list"),
+  steeringActionList: document.querySelector("#steering-action-list"),
+  healthFreshnessPill: document.querySelector("#health-freshness-pill"),
   aiGovernanceList: document.querySelector("#ai-governance-list"),
   reusableAssetList: document.querySelector("#reusable-asset-list"),
   customSummary: document.querySelector("#custom-summary"),
@@ -933,6 +951,7 @@ const elements = {
 
 const viewTitles = {
   dashboard: "Project Command Dashboard",
+  "health-scorecard": "Project Health Scorecard",
   "sow-studio": "SOW Breakdown Studio",
   "scope-baseline": "Scope Baseline Control",
   "resource-capacity": "Resource Capacity Control",
@@ -947,6 +966,7 @@ const viewTitles = {
 
 const viewDescriptions = {
   dashboard: "Start with portfolio health, then open the workstream that needs attention.",
+  "health-scorecard": "Aggregate project signals into executive health, drivers, freshness, and steering actions.",
   "sow-studio": "Break down the SOW into work packages, checkpoints, schedule logic, and delivery risks.",
   "scope-baseline": "Confirm what is committed, who signed off, and which changes need formal control.",
   "resource-capacity": "Inspect overloaded people, scarce skills, priority collisions, and backup coverage gaps.",
@@ -1035,6 +1055,11 @@ function normalizeState(nextState) {
       ...((normalized.notionSync?.setup ?? [])[index] ?? {}),
     })),
     insights: Array.isArray(normalized.notionSync?.insights) ? normalized.notionSync.insights : notionDefaults.insights,
+  };
+
+  normalized.healthScorecard = {
+    ...buildHealthScorecardState(),
+    ...(normalized.healthScorecard ?? {}),
   };
 
   normalized.requests = (normalized.requests ?? initialState.requests).map(enrichRequest);
@@ -1184,6 +1209,208 @@ function capacityConflicts() {
     }));
 
   return [...overloads, ...guruRisks, ...hotResources].slice(0, 8);
+}
+
+function clampScore(value) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function averageScore(values) {
+  if (!values.length) return 100;
+  return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+}
+
+function scoreStatus(score) {
+  if (score >= 85) return { label: "Green", className: "healthy", summary: "On track" };
+  if (score >= 70) return { label: "Watch", className: "watch", summary: "Needs monitoring" };
+  if (score >= 55) return { label: "At Risk", className: "at-risk", summary: "Needs action" };
+  return { label: "Critical", className: "critical", summary: "Executive intervention" };
+}
+
+function healthScorecardSnapshot() {
+  const baselineReadiness = scopeBaselineReadiness();
+  const conflicts = capacityConflicts();
+  const coverage = skillCoverage();
+  const resources = state.resourceCapacity.resources;
+  const openRequests = state.requests.filter((request) => request.status !== "Approved");
+  const highRiskRequests = openRequests.filter((request) => request.risk === "High");
+  const timelinePressure = openRequests.filter((request) => request.impact?.timeline && request.impact.timeline !== "No change").length;
+  const pendingDecisions = state.decisions.filter((decision) => decision.status !== "Approved");
+  const pendingSignoffs = state.scopeBaseline.stakeholders.filter((stakeholder) => stakeholder.status !== "Signed Off");
+  const openBaselineItems = state.scopeBaseline.components.filter((item) => item.status !== "Approved").length;
+  const incompleteSowLayers = sowLayers.length - state.sow.approvedLayerIds.length;
+  const overallocated = resources.filter((resource) => resourceHours(resource) > resource.capacity).length;
+  const averageUtilization = averageScore(resources.map(resourceUtilization));
+  const guruRisks = coverage.filter((skill) => skill.risk === "Guru Risk" && skill.demand > 0).length;
+  const checklistCompletion = completePercent(state.checklist);
+  const aiReadiness = completePercent(state.checklist.filter((item) => item.type === "AI/Data"));
+  const decisionReadiness = averageScore(state.decisions.map((decision) => decision.checklistComplete));
+  const syncedMappings = state.notionSync.mappings.filter((mapping) => mapping.status === "Synced").length;
+  const staleHours = Math.max(0, Number(state.healthScorecard.staleHours ?? 0));
+  const liveDataBonus = syncedMappings > 0 ? 5 : 0;
+
+  const scheduleScore = clampScore(100 - timelinePressure * 7 - pendingDecisions.length * 3 - incompleteSowLayers * 2 - Math.min(conflicts.length, 5) * 2);
+  const scopeScore = clampScore(55 + baselineReadiness * 0.45 - openRequests.length * 3 - highRiskRequests.length * 5 + state.governance * 2);
+  const resourceScore = clampScore(72 - overallocated * 10 - Math.min(guruRisks, 4) * 4 - Math.max(0, averageUtilization - 90));
+  const riskScore = clampScore(82 + Math.round((checklistCompletion + aiReadiness) / 8) - highRiskRequests.length * 8 - conflicts.filter((item) => item.severity === "High").length * 6 - pendingSignoffs.length * 3);
+  const decisionScore = clampScore(70 + decisionReadiness * 0.3 - pendingDecisions.length * 8 + baselineReadiness * 0.1);
+  const dataFreshnessScore = clampScore(100 - staleHours * 6 + liveDataBonus);
+
+  const dimensions = [
+    {
+      key: "schedule",
+      label: "Schedule Health",
+      score: scheduleScore,
+      source: "SOW, changes, decisions",
+      detail: `${timelinePressure} schedule-impacting request${timelinePressure === 1 ? "" : "s"}; ${incompleteSowLayers} SOW layer${incompleteSowLayers === 1 ? "" : "s"} still need review.`,
+    },
+    {
+      key: "scope",
+      label: "Scope Stability",
+      score: scopeScore,
+      source: "Baseline + change control",
+      detail: `${baselineReadiness}% baseline readiness with ${openBaselineItems} open baseline item${openBaselineItems === 1 ? "" : "s"}.`,
+    },
+    {
+      key: "resources",
+      label: "Resource Capacity",
+      score: resourceScore,
+      source: "Multi-project allocation",
+      detail: `${overallocated} over-allocated person${overallocated === 1 ? "" : "s"}; ${guruRisks} guru-risk skill${guruRisks === 1 ? "" : "s"}.`,
+    },
+    {
+      key: "risk",
+      label: "Risk Exposure",
+      score: riskScore,
+      source: "RAID, AI/data controls",
+      detail: `${highRiskRequests.length} high-risk change${highRiskRequests.length === 1 ? "" : "s"}; ${aiReadiness}% AI/data readiness.`,
+    },
+    {
+      key: "decisions",
+      label: "Decision Velocity",
+      score: decisionScore,
+      source: "Decision studio",
+      detail: `${pendingDecisions.length} decision${pendingDecisions.length === 1 ? "" : "s"} still need steering or owner action.`,
+    },
+    {
+      key: "freshness",
+      label: "Data Freshness",
+      score: dataFreshnessScore,
+      source: "OzzyPM + Notion signals",
+      detail: `${staleHours} hour${staleHours === 1 ? "" : "s"} since aggregation; ${syncedMappings} synced source${syncedMappings === 1 ? "" : "s"}.`,
+    },
+  ].map((dimension) => ({
+    ...dimension,
+    status: scoreStatus(dimension.score),
+  }));
+
+  const overall = clampScore(
+    scheduleScore * 0.17 +
+      scopeScore * 0.18 +
+      resourceScore * 0.22 +
+      riskScore * 0.18 +
+      decisionScore * 0.15 +
+      dataFreshnessScore * 0.1,
+  );
+  const overallStatus = scoreStatus(overall);
+  const drivers = [];
+
+  if (staleHours >= 4) {
+    drivers.push({
+      severity: "Medium",
+      type: "Data freshness",
+      title: `Status data is ${staleHours} hours old`,
+      detail: "Refresh aggregation before steering so the committee sees current scope, capacity, decision, and change signals.",
+      owner: "Project manager",
+    });
+  }
+
+  conflicts.slice(0, 3).forEach((conflict) => {
+    drivers.push({
+      severity: conflict.severity,
+      type: conflict.type,
+      title: conflict.title,
+      detail: conflict.detail,
+      owner: conflict.owner,
+    });
+  });
+
+  pendingSignoffs.slice(0, 2).forEach((stakeholder) => {
+    drivers.push({
+      severity: "Medium",
+      type: "Sign-off gap",
+      title: `${stakeholder.name} has not signed off`,
+      detail: `${stakeholder.concern} Due: ${stakeholder.due}.`,
+      owner: stakeholder.role,
+    });
+  });
+
+  highRiskRequests.slice(0, 2).forEach((request) => {
+    drivers.push({
+      severity: "High",
+      type: "Change risk",
+      title: `${request.id}: ${request.title}`,
+      detail: `${request.challenge} Timeline impact: ${request.impact.timeline}.`,
+      owner: request.owner,
+    });
+  });
+
+  pendingDecisions.slice(0, 2).forEach((decision) => {
+    drivers.push({
+      severity: decision.risk,
+      type: "Decision needed",
+      title: `${decision.id}: ${decision.title}`,
+      detail: `Owner: ${decision.owner}. Due: ${decision.due}. Options: ${decision.options.join(" / ")}.`,
+      owner: decision.owner,
+    });
+  });
+
+  if (!drivers.length) {
+    drivers.push({
+      severity: "Low",
+      type: "Stable",
+      title: "No major blockers detected",
+      detail: "Current scope, capacity, change, decision, and governance signals are inside the demo tolerance.",
+      owner: "PMO",
+    });
+  }
+
+  const actions = [
+    {
+      title: "Confirm the top blocker owner",
+      ask: drivers[0]?.title ?? "Confirm project owner alignment",
+      owner: drivers[0]?.owner ?? "Project manager",
+      due: "Before next steering review",
+    },
+    {
+      title: "Approve or defer pending decisions",
+      ask: pendingDecisions.length ? `${pendingDecisions.length} decision path${pendingDecisions.length === 1 ? "" : "s"} need closure.` : "No decision escalation needed right now.",
+      owner: pendingDecisions[0]?.owner ?? "Steering committee",
+      due: pendingDecisions[0]?.due ?? "Monitor",
+    },
+    {
+      title: "Refresh project data before publishing",
+      ask: staleHours >= 4 ? "Run aggregation so the status view is current." : "Aggregation is fresh enough for the demo steering view.",
+      owner: "Project manager",
+      due: state.healthScorecard.reportingCycle,
+    },
+  ];
+
+  return {
+    overall,
+    overallStatus,
+    dimensions,
+    drivers: drivers.slice(0, 7),
+    actions,
+    signals: {
+      openRequests: openRequests.length,
+      pendingDecisions: pendingDecisions.length,
+      pendingSignoffs: pendingSignoffs.length,
+      conflicts: conflicts.length,
+      staleHours,
+      sourceCount: state.healthScorecard.sourceCount,
+    },
+  };
 }
 
 function buildCurrentNotionInsights() {
@@ -1742,6 +1969,122 @@ function renderNotionSync() {
     .join("");
 }
 
+function renderHealthScorecard() {
+  const snapshot = healthScorecardSnapshot();
+  const worstDimension = [...snapshot.dimensions].sort((a, b) => a.score - b.score)[0];
+  const readyForSteering = snapshot.overall >= 70 && snapshot.signals.staleHours < 4;
+
+  elements.healthFreshnessPill.textContent = `${snapshot.signals.staleHours}h data age`;
+  elements.healthSummaryGrid.innerHTML = [
+    {
+      label: "Overall health",
+      value: `${snapshot.overall}%`,
+      detail: `${snapshot.overallStatus.label} | ${snapshot.overallStatus.summary}`,
+    },
+    {
+      label: "Auto signals",
+      value: snapshot.signals.sourceCount,
+      detail: "Scope, schedule, risk, capacity, decisions, and data freshness are aggregated.",
+    },
+    {
+      label: "Executive drivers",
+      value: snapshot.drivers.length,
+      detail: `${worstDimension.label} is the current weakest dimension at ${worstDimension.score}%.`,
+    },
+    {
+      label: "Steering readiness",
+      value: readyForSteering ? "Ready" : "Review",
+      detail: state.healthScorecard.briefStatus,
+    },
+  ]
+    .map(
+      (item) => `
+        <article class="health-summary-card">
+          <span>${item.label}</span>
+          <strong>${item.value}</strong>
+          <p>${item.detail}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.overallHealthPanel.innerHTML = `
+    <div class="health-ring ${snapshot.overallStatus.className}" style="--score: ${snapshot.overall}%">
+      <strong>${snapshot.overall}</strong>
+      <span>${snapshot.overallStatus.label}</span>
+    </div>
+    <div class="health-overall-copy">
+      <p class="eyebrow">Aggregated project health</p>
+      <h3>${state.workspace.company || "Sandbox Company"} needs ${snapshot.overallStatus.summary.toLowerCase()}.</h3>
+      <p>
+        OzzyPM is reading ${snapshot.signals.sourceCount} delivery signal groups and replacing manual status compilation with visible drivers, data freshness, and steering actions.
+      </p>
+      <div class="health-signal-row">
+        <span>${snapshot.signals.openRequests} open changes</span>
+        <span>${snapshot.signals.conflicts} capacity alerts</span>
+        <span>${snapshot.signals.pendingDecisions} pending decisions</span>
+      </div>
+    </div>
+  `;
+
+  elements.executiveBriefPanel.innerHTML = `
+    <article class="executive-brief-card">
+      <span class="health-status ${snapshot.overallStatus.className}">${snapshot.overallStatus.label}</span>
+      <h4>${state.workspace.company || "Sandbox Company"} is at ${snapshot.overall}% health.</h4>
+      <p><strong>What changed:</strong> ${snapshot.drivers[0].title}</p>
+      <p><strong>Why it matters:</strong> ${snapshot.drivers[0].detail}</p>
+      <p><strong>Decision needed:</strong> ${snapshot.actions[0].ask}</p>
+      <p><strong>Publish state:</strong> ${state.healthScorecard.lastAggregated}</p>
+    </article>
+  `;
+
+  elements.healthDimensionGrid.innerHTML = snapshot.dimensions
+    .map(
+      (dimension) => `
+        <article class="health-dimension-card ${dimension.status.className}">
+          <div class="record-meta">
+            <span class="health-status ${dimension.status.className}">${dimension.status.label}</span>
+            <span class="check-type">${dimension.source}</span>
+          </div>
+          <h4>${dimension.label}</h4>
+          <strong>${dimension.score}%</strong>
+          <div class="progress-bar health-bar ${dimension.status.className}" aria-hidden="true"><span style="width: ${dimension.score}%"></span></div>
+          <p>${dimension.detail}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.healthDriverList.innerHTML = snapshot.drivers
+    .map(
+      (driver) => `
+        <article class="health-driver-card ${riskClass(driver.severity)}">
+          <div class="record-meta">
+            <span class="risk-pill ${riskClass(driver.severity)}">${driver.severity}</span>
+            <span class="check-type">${driver.type}</span>
+          </div>
+          <h4>${driver.title}</h4>
+          <span>Owner: ${driver.owner}</span>
+          <p>${driver.detail}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  elements.steeringActionList.innerHTML = snapshot.actions
+    .map(
+      (action) => `
+        <article class="steering-action-card">
+          <span class="score-pill">${action.due}</span>
+          <h4>${action.title}</h4>
+          <p>${action.ask}</p>
+          <span>Owner: ${action.owner}</span>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 
 function renderDecisions() {
   elements.decisionList.innerHTML = state.decisions
@@ -1976,6 +2319,38 @@ function resetSowLayers() {
   renderAll();
 }
 
+function currentTimestamp() {
+  return new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+}
+
+function refreshHealthAggregation() {
+  state.healthScorecard.lastAggregated = `Fresh aggregation ${currentTimestamp()}`;
+  state.healthScorecard.staleHours = 0;
+  state.healthScorecard.briefStatus = "Fresh scorecard is ready for PM review.";
+  saveState();
+  renderAll();
+}
+
+function prepareExecutiveBrief() {
+  const snapshot = healthScorecardSnapshot();
+  state.healthScorecard.briefStatus = `${snapshot.overallStatus.label} executive brief prepared from ${snapshot.signals.sourceCount} signal groups.`;
+  state.healthScorecard.lastAggregated = `Executive brief prepared ${currentTimestamp()}`;
+  state.notionSync.insights = [
+    {
+      type: "Health Scorecard",
+      status: snapshot.overallStatus.label,
+      title: `${state.workspace.company || "Sandbox Company"} is at ${snapshot.overall}% project health`,
+      detail: `${snapshot.drivers[0].title}. Steering ask: ${snapshot.actions[0].ask}`,
+      source: "OzzyPM health scorecard",
+    },
+    ...buildCurrentNotionInsights(),
+  ].slice(0, 8);
+  state.missions[1].progress = Math.min(100, state.missions[1].progress + 6);
+  state.missions[1].points += state.points.review;
+  saveState();
+  renderAll();
+}
+
 function renderAll() {
   updateWorkspaceChrome();
   renderMetrics();
@@ -1985,6 +2360,7 @@ function renderAll() {
   renderScopeBaseline();
   renderResourceCapacity();
   renderNotionSync();
+  renderHealthScorecard();
   renderRequests();
   renderDecisions();
   renderChecklist();
@@ -2503,6 +2879,8 @@ function bindEvents() {
   document.querySelector("#advance-change-gate").addEventListener("click", advanceChangeGate);
   document.querySelector("#level-load-conflicts").addEventListener("click", levelLoadConflicts);
   document.querySelector("#add-backup-coverage").addEventListener("click", () => addBackupCoverage());
+  document.querySelector("#refresh-health-scorecard").addEventListener("click", refreshHealthAggregation);
+  document.querySelector("#prepare-executive-brief").addEventListener("click", prepareExecutiveBrief);
   document.querySelector("#preview-notion-sync").addEventListener("click", previewNotionSync);
   document.querySelector("#generate-notion-brief").addEventListener("click", generateNotionBrief);
   document.querySelector("#write-notion-report").addEventListener("click", writeNotionReport);
@@ -2575,3 +2953,8 @@ function bindEvents() {
 
 bindEvents();
 renderAll();
+
+const initialHashView = window.location?.hash?.slice(1);
+if (initialHashView && viewTitles[initialHashView]) {
+  setView(initialHashView);
+}
